@@ -4,7 +4,7 @@ ASMFLAGS := -dotdir -Fbin -esc
 FS128_TOOL := python3 src/fs128-tool.py
 
 .PHONY: all
-all: build/img.bin
+all: build/img.bin build/disk
 
 .PHONY: build
 build:
@@ -18,12 +18,16 @@ build/bootloader.out: build
 build/kernel.out: build
 	$(ASM) $(ASMFLAGS) -o $@ src/kernel.asm -L build/link.txt -Llo
 
-build/img.bin: build/bootloader.out build/kernel.out | build
-	cp build/kernel.out build/_k
-	echo "Hello, world!" > build/test.txt
-	$(FS128_TOOL) -b $< -o $@ build/_k build/test.txt
-	rm build/_k
-	rm build/test.txt
+.PHONY: build/disk
+build/disk: build/kernel.out | build
+	mkdir -p $@
+	cp build/kernel.out build/disk/_k
+	$(ASM) $(ASMFLAGS) -o build/disk/fib src/fib.asm
+	echo "Hello, world!" > build/disk/test.txt
+
+.PHONY: build/img.bin
+build/img.bin: build/bootloader.out build/disk | build
+	$(FS128_TOOL) -b $< -o $@ build/disk/*
 
 .PHONY: run
 run: all

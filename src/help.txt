@@ -8,6 +8,6 @@ Commands:
 [32mtxt [33m[nn] [90m- [0mShow the contents of a text file
 [32mdir      [90m- [0mShow all files on disk
 [32moff      [90m- [0mShutdown the machine
-[32mrun [33m[nn] [90m- [0mExecute a [36m*.run[0m file
+[32mrun [33m[nn] [90m- [0mExecute an executable file
 [32msys      [90m- [0mEnter the system firmware
 [32mcls      [90m- [0mClear the screen

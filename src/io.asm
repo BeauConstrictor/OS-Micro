@@ -99,6 +99,43 @@ hex_out:
   out  (SERIAL),a
   ret
 
+; output the (unsigned) decimal byte in a
+num_out:
+    push af
+    push bc
+    push de
+    push hl
+    ; keep track of digits
+    ld   b,0
+.loop:
+    ld   c,10
+    ; repeatedly subtract
+    ld   d,0
+.sub:
+    cp   10
+    jr   c,.store
+    sub  10
+    inc  d
+    jr   .sub
+.store:
+    push af ; remainder
+    inc  b
+    ld   a,d ; division result
+    or   a
+    jr   nz,.loop
+.print:
+    pop  af
+    add  a,'0'
+    out  (SERIAL),a
+    djnz .print
+    ld   a,' '
+    out  (SERIAL),a
+    pop  hl
+    pop  de
+    pop  bc
+    pop  af
+    ret
+
 ; print the hex word in hl
 ; clobbers a,b,hl
 hex_word_out:

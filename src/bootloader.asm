@@ -2,7 +2,7 @@
   .section code
 
 start:
-  ld   sp,$bfff
+  ld   sp,STACK_START
 .loop:
   call find_kernel
   call load_kernel

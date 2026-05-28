@@ -4,13 +4,13 @@ SHELL_ASM = 1
 shell:
   ld   hl,welcome_msg
   call print
-.loop:
+shell_cmdloop:
   call shell_prompt
   call buffer_l
   ld   hl,final_prompt
   call print
   call exec_cmd
-  jr   .loop
+  jr   shell_cmdloop
 
 shell_prompt:
   ld   hl,pre_prompt
@@ -166,18 +166,26 @@ cmd_cls:
   call print
   ret
 
+; change the active device
 cmd_dsk:
   call hex_in
   ld   (DEV_SELECT),a
+  call busy_wait
   ret
 
+; show help text
 cmd_hlp:
   ld   hl,help_txt
   call print
   ret
 
+; run a program
 cmd_run:
-  ret
+  call hex_in
+  ld   hl,RUN_LOAD
+  call fload
+  jp   RUN_LOAD
+  ; ret
 
 cmd_table:
   .byte  "dir"
