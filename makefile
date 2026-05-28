@@ -20,8 +20,10 @@ build/kernel.out: build
 
 build/img.bin: build/bootloader.out build/kernel.out | build
 	cp build/kernel.out build/_k
-	$(FS128_TOOL) -b $< -o $@ build/_k
+	echo "Hello, world!" > build/test.txt
+	$(FS128_TOOL) -b $< -o $@ build/_k build/test.txt
 	rm build/_k
+	rm build/test.txt
 
 .PHONY: run
 run: all

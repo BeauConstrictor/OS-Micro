@@ -99,6 +99,52 @@ hex_out:
   out  (SERIAL),a
   ret
 
+; print the hex word in hl
+; clobbers a,b,hl
+hex_word_out:
+  ld   a,h
+  call hex_out
+  ld   a,l
+  call hex_out
+  ret
+
+; read in a hex byte from input buffer (returns in a) (produces
+; garbage for invalid hex)
+; clobbers: a,b,hl
+hex_in:
+  ; read a single hex char
+  call .nibble
+  ; move it to high nibble spot
+  rlca
+  rlca
+  rlca
+  rlca
+  ; save it for now
+  ld   b,a
+  ; read another char
+  call .nibble
+  ; it is in the low nibble spot. now or back in the high nibble we
+  ; just saved
+  or   b
+  ret
+.nibble:
+  call get_char
+  ; if less than 'A' in ascii code, must be a digit
+  cp   'A'
+  jr   c,.digit
+  ; if less than 'a' in ascii code, must be an uppercase char
+  cp   'a'
+  jr   c,.uppercase
+  ; otherwise, it must be lowercase
+  sub  'a'-10
+  ret 
+.uppercase:
+  sub  'A'-10
+  ret
+.digit:
+  sub  '0'
+  ret
+
 ; print the null-terminated string (hl)
 ; clobbers: a,hl
 print:
@@ -108,5 +154,13 @@ print:
   out  (SERIAL),a
   inc  hl
   jr   print
+
+; wait until the device busy flag is 0
+; clobbers: a
+busy_wait:
+  ld   a,(DEV_STATUS)
+  and  BUSY
+  jr   nz,busy_wait
+  ret
 
   .endif ; IO_ASM

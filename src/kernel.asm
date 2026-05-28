@@ -2,7 +2,7 @@
 
 start:
   ld   sp,$bfff
-  jr   shell
+  jp   shell
 
   .include "io.asm"
   .include "mmap.asm"
