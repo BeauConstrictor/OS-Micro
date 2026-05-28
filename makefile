@@ -31,7 +31,7 @@ build/img.bin: build/bootloader.out build/disk | build
 
 .PHONY: run
 run: all
-	ozm -m bdsk:build/img.bin@00
+	ozm -m bdsk:build/img.bin@00 -m xm@01
 
 .PHONY: clean
 clean:

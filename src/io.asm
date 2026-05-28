@@ -192,12 +192,4 @@ print:
   inc  hl
   jr   print
 
-; wait until the device busy flag is 0
-; clobbers: a
-busy_wait:
-  ld   a,(DEV_STATUS)
-  and  BUSY
-  jr   nz,busy_wait
-  ret
-
   .endif ; IO_ASM

@@ -1,16 +1,17 @@
   .ifndef SHELL_ASM
 SHELL_ASM = 1
 
-shell:
+welcome:
   ld   hl,welcome_msg
   call print
-shell_cmdloop:
+shell:
+  ld   sp,STACK_START
   call shell_prompt
   call buffer_l
   ld   hl,final_prompt
   call print
   call exec_cmd
-  jr   shell_cmdloop
+  jr   shell
 
 shell_prompt:
   ld   hl,pre_prompt
@@ -97,15 +98,17 @@ cmd_dir:
   ld   a,(hl)
   cp   0
   jr   z,.unoccupied
-  cp   '_' ; hidden files start with '_'
+  cp   '_' ; hidden files
   jr   z,.unoccupied
   push hl
+  ld   c,b
   ld   de,15
   add  hl,de
   ld   a,(hl)
   call hex_out
   ld   hl,dir_separator
   call print
+  ld   b,c
   pop  hl
   push hl
   call print
@@ -142,18 +145,41 @@ cmd_txt:
 
 ; return if a is printable in the carry flag
 is_printable:
-    cp  $20
-    jr  c,.no
-    cp  $7f
-    jr  nc,.no
-    scf
-    ret
+  cp  $20
+  jr  c,.no
+  cp  $7f
+  jr  nc,.no
+  scf
+  ret
 .no:
-    or  a
-    ret
+  or  a
+  ret
+
+; check for a space and at least one more char. fails if not
+; clobbers: <nothing>
+expect_arg:
+  push hl
+  push af
+  ld   hl,(parse)
+  ld   a,(hl)
+  cp   ' '
+  jr   nz,.fail
+  inc  hl
+  ld   a,(hl)
+  cp   '\0'
+  jr   z,.fail
+  ; advance parse past the space
+  ld   (parse),hl
+  pop  af
+  pop  hl
+  ret
+.fail:
+  ld   hl,missing_argument
+  call print
+  jp   shell
 
 ; shutdown the machine
-cmd_off:
+cmd_bye:
   halt
 
 ; enter the firmware
@@ -168,9 +194,20 @@ cmd_cls:
 
 ; change the active device
 cmd_dsk:
+  ; preserve original device in case new one is invalid
+  ld   a,(DEV_SELECT)
+  ld   d,a
   call hex_in
   ld   (DEV_SELECT),a
   call busy_wait
+  call chkdsk
+  ret  nc
+  ; invalid!
+  ld   a,d
+  ; go back to original device
+  ld   (DEV_SELECT),a
+  ld   hl,must_format_first
+  call print
   ret
 
 ; show help text
@@ -187,13 +224,49 @@ cmd_run:
   jp   RUN_LOAD
   ; ret
 
+; format a disk for fs/128
+cmd_fmt:
+  call hex_in
+  ld   (DEV_SELECT),a
+  call busy_wait
+  ld   a,(DEV_STATUS)
+  and  DEV_ID
+  cp   0
+  jr   z,.nodev
+  call fmtdsk
+  call chkdsk
+  ret  nc
+  ld   hl,not_writeable
+  call print
+  ret
+.nodev:
+  ld   hl,no_dev_there
+  call print
+  ret
+
+; create a new file
+cmd_new:
+  call fnew
+  call expect_arg
+  ld   hl,(parse)
+  call frename
+  ret
+
+; rename a file
+cmd_ren:
+  call hex_in
+  call expect_arg
+  ld   hl,(parse)
+  call frename
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
   .byte  "txt"
   .word  cmd_txt
-  .byte  "off"
-  .word  cmd_off
+  .byte  "bye"
+  .word  cmd_bye
   .byte  "sys"
   .word  cmd_sys
   .byte  "cls"
@@ -204,12 +277,17 @@ cmd_table:
   .word  cmd_hlp
   .byte  "run"
   .word  cmd_run
+  .byte  "fmt"
+  .word  cmd_fmt
+  .byte  "new"
+  .word  cmd_new
+  .byte  "ren"
+  .word  cmd_ren
   .byte  0
 
 help_txt:
   .binary "help.txt"
   .byte 0
-
 welcome_msg:
   .text   "\e[35mWelcome to OS/M Version 0.0.0!\n"
   .asciiz "\e[90mType 'hlp' for help.\e[0m\n\n"
@@ -223,13 +301,14 @@ dir_separator:
   .asciiz "# "
 clear_scr:
   .asciiz "\033[2J\033[H"
-
-hexdump_addr:
-  .asciiz "\033[34m"
-hexdump_addrend:
-  .ascii  "\033[0m  "
-non_printable_char:
-  .asciiz "\033[90m.\033[0m"
-
+must_format_first:
+  .asciiz "\033[31mThat device is not formatted.\n\033[0m" 
+not_writeable:
+  .asciiz "\033[31mThat device is not writeable.\n\033[0m" 
+no_dev_there:
+  .asciiz "\033[31mThere is no device in that slot.\n\033[0m" 
+missing_argument:
+  .asciiz "\033[31mMissing argument.\n\033[0m" 
   .endif ; SHELL_ASM
+
 

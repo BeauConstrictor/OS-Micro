@@ -2,7 +2,7 @@
 
 start:
   ld   sp,STACK_START
-  jp   shell
+  jp   welcome
 
   .include "io.asm"
   .include "fs.asm"
