@@ -29,9 +29,11 @@ buffer_l:
   ; load the start of the bufferr
   ld   de,linebuf
   ; check if we're already at it
+  push hl
   xor  a
   sbc  hl,de
   ; if so, ignore backspace
+  pop  hl
   jr   z,.loop
   ; move cursor back,
   ld   a,'\b'

@@ -54,11 +54,18 @@ exec_cmd:
   jr   .check_match
 .notfound:
   ld   a,c
+  cp   '\0'
+  jr   z,.endofcmd
   out  (SERIAL),a
   ld   a,d
+  cp   '\0'
+  jr   z,.endofcmd
   out  (SERIAL),a
   ld   a,e
+  cp   '\0'
+  jr   z,.endofcmd
   out  (SERIAL),a
+.endofcmd:
   ld   a,'?'
   out  (SERIAL),a
   ld   a,'\n'
