@@ -105,8 +105,10 @@ cmd_dir:
   ld   de,15
   add  hl,de
   ld   a,(hl)
+  push af
   ld   hl,dir_fid_color
   call print
+  pop  af
   call hex_out
   ld   hl,dir_separator
   call print
