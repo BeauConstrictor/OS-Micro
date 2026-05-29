@@ -105,6 +105,8 @@ cmd_dir:
   ld   de,15
   add  hl,de
   ld   a,(hl)
+  ld   hl,dir_fid_color
+  call print
   call hex_out
   ld   hl,dir_separator
   call print
@@ -373,8 +375,10 @@ post_prompt:
   .asciiz "\e[90m ~> \e[32m"
 final_prompt:
   .asciiz "\e[0m"
+dir_fid_color:
+  .asciiz "\e[90m"
 dir_separator:
-  .asciiz "# "
+  .asciiz "#\e[0m "
 clear_scr:
   .asciiz "\e[2J\e[H"
 must_format_first:
