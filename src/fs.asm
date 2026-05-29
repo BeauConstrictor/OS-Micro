@@ -260,6 +260,41 @@ frename:
   call busy_wait
   ret
 
+; set the contents of the file in the a register to hl.
+; NOTE: should not be used to overwrite a file's contents, only for
+; writing to a new file. delete old ones first (for now).
+; (a null-terminated string)
+; clobbers: a,b,de,hl
+fwrite:
+  ld   d,h
+  ld   e,l
+.chsect:
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ; only 255 bytes of data per sector!
+  ld   b,255
+  ld   hl,DEV_READ
+.write:
+  ld   a,(de)
+  ; if at end of string, stop
+  cp   '\0'
+  ret  z
+  ld   (hl),a
+  inc  hl
+  inc  de
+  djnz .write
+  call getfree
+  ; we pass the new sector back into chsect
+  ld   (hl),a
+  jr   .chsect
+
+; flush all changes to disk
+; clobbers: a
+fflush:
+  ld   a,(DEV_SECTOR)
+  ld   (DEV_SECTOR),a
+  jr   busy_wait
+
 ; wait until the device busy flag is 0
 ; clobbers: a
 busy_wait:

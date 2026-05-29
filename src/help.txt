@@ -8,6 +8,7 @@ Commands:
 [32mtxt [33m[fid]       [90m- [0mShow the contents of a text file
 [32mdir       [90m      - [0mShow all files on disk and their ids
 [32mbye       [90m      - [0mShutdown the machine
+[32mwrt [33m[fid] [33m"txt" [90m- [0mSave some text into a blank file
 [32mrun [33m[fid]       [90m- [0mExecute an executable file
 [32msys       [90m      - [0mEnter the system firmware
 [32mcls       [90m      - [0mClear the screen

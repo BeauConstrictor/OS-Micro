@@ -260,6 +260,31 @@ cmd_ren:
   call frename
   ret
 
+; set the contents of an empty text file
+cmd_wrt:
+  call hex_in
+  ld   b,a
+  call expect_arg
+  ; add a newline to the end of the string
+  ld   hl,(parse)
+.findterminator:
+  ld   a,(hl)
+  cp   '\0'
+  jr   z,.found
+  inc  hl
+  jr   .findterminator
+.found:
+  ld   a,'\n'
+  ld   (hl),a
+  inc  hl
+  ld   a,'\0'
+  ld   (hl),a
+  ; go back to start
+  ld   hl,(parse)
+  ld   a,b
+  call fwrite
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
@@ -283,6 +308,8 @@ cmd_table:
   .word  cmd_new
   .byte  "ren"
   .word  cmd_ren
+  .byte  "wrt"
+  .word  cmd_wrt
   .byte  0
 
 help_txt:
