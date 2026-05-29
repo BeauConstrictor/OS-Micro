@@ -3,11 +3,14 @@ type it's name (not actually implemented yet).
 
 Commands:
 
-[32mhlp      [90m- [0mShow this help
-[32mdsk [33m[id] [90m- [0mChange disk
-[32mtxt [33m[id] [90m- [0mShow the contents of a text file
-[32mdir      [90m- [0mShow all files on disk and their ids
-[32mbye      [90m- [0mShutdown the machine
-[32mrun [33m[id] [90m- [0mExecute an executable file
-[32msys      [90m- [0mEnter the system firmware
-[32mcls      [90m- [0mClear the screen
+[32mhlp       [90m      - [0mShow this help
+[32mdsk [33m[fid]       [90m- [0mChange disk
+[32mtxt [33m[fid]       [90m- [0mShow the contents of a text file
+[32mdir       [90m      - [0mShow all files on disk and their ids
+[32mbye       [90m      - [0mShutdown the machine
+[32mrun [33m[fid]       [90m- [0mExecute an executable file
+[32msys       [90m      - [0mEnter the system firmware
+[32mcls       [90m      - [0mClear the screen
+[32mfmt [33m[dev]       [90m- [0mFormat a device with FS/128
+[32mnew [33m"nam"       [90m- [0mCreate a new file with a specified name
+[32mren [33m[fid] [33m"nam" [90m- [0mCreate a new file with a specified name
