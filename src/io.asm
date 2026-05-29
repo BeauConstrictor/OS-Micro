@@ -110,39 +110,70 @@ hex_out:
   out  (SERIAL),a
   ret
 
-; output the (unsigned) decimal byte in a
+; output decimal byte in a
+; clobbers: <none.
 num_out:
     push af
     push bc
-    push de
-    push hl
-    ; keep track of digits
-    ld   b,0
-.loop:
-    ld   c,10
-    ; repeatedly subtract
-    ld   d,0
-.sub:
-    cp   10
-    jr   c,.store
+    ld   b,a ; save value
+    ld   c,'0'-1 ; tens digit ASCII
+.tens:
+    inc  c
     sub  10
-    inc  d
-    jr   .sub
-.store:
-    push af ; remainder
-    inc  b
-    ld   a,d ; division result
-    or   a
-    jr   nz,.loop
-.print:
-    pop  af
+    jr   nc,.tens
+    add  a,10 ; A = units digit
+    ld   b,a ; save units digit
+    ld   a,c
+    cp   '0'
+    jr   z,.units
+    out  (SERIAL),a ; print tens digit
+.units:
+    ld   a,b
     add  a,'0'
     out  (SERIAL),a
-    djnz .print
-    pop  hl
-    pop  de
     pop  bc
     pop  af
+    ret
+
+; output hl in decimal
+; clobbers: a,b,de,hl
+num_word_out:
+    ld   b,0 ; keep track of leading zeroes
+
+    ld   de,-10000
+    call .digit
+    ld   de,-1000
+    call .digit
+    ld   de,-100
+    call .digit
+    ld   de,-10
+    call .digit
+    ld   a,l
+    add  a,'0'
+    out  (SERIAL),a
+    ret
+.digit:
+    ld   a,'0'-1
+.loop:
+    inc  a
+    add  hl,de
+    jr   c,.loop
+    sbc  hl,de
+    ; decide if we print this digit
+    ld   c,a
+    cp   '0'
+    jr   z,.skip_if_leading
+.print_digit:
+    out  (SERIAL),a
+    ld   b,1 ; set printed flag
+    ret
+.skip_if_leading:
+    ld   a,b
+    cp   0
+    jr   z,.done
+    ld   a,c
+    jr   .print_digit
+.done:
     ret
 
 ; print the hex word in hl
@@ -190,8 +221,9 @@ hex_in:
 .digit:
   sub  '0'
   ret
+
 ; read a 16-byte hex value into hl
-; clobbers: a,b,hl
+; clobbers: a,b,e,hl
 hex_word_in:
   call hex_in
   ld   e,a

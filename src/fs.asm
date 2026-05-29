@@ -1,6 +1,11 @@
 ; This fs/128 parsing library does not qute support the full spec.
 ; Specifically, it uses only one directory sector, sector 1. Sectors
 ; 2-5 are treated as unused in this implementation (for now).
+;
+; Files are passed around as single bytes called 'fids'. These are
+; similar to FILE* in c expect you do not need to open and closet
+; them. To get the fid of a file, you will eventually be able to use
+; ffind
 
   .ifndef FS_ASM
 FS_ASM = 1
@@ -314,6 +319,23 @@ disk_usg:
   inc  hl
   djnz .loop
   ld   a,c
+  ret
+
+; return in a the number of sectors in file a
+; clobbers: a,b,hl
+fsize:
+  ld   hl,DEV_READ
+  ld   l,$ff ; sector byte
+  ld   b,0
+.chsect:
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  inc  b
+.loop:
+  ld   a,(hl) ; read the next sector
+  cp   0 ; check if there even is another sector
+  jr   nz,.chsect
+  ld   a,b
   ret
 
 disk_full:

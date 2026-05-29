@@ -335,6 +335,19 @@ cmd_usg:
   out  (SERIAL),a
   ret
 
+; show how large a file is
+cmd_siz:
+  call hex_in
+  call fsize
+  ld   h,a
+  ld   l,0
+  call num_word_out
+  ld   a,'B'
+  out  (SERIAL),a
+  ld   a,'\n'
+  out  (SERIAL),a
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
@@ -364,6 +377,8 @@ cmd_table:
   .word  cmd_dev
   .byte  "usg"
   .word  cmd_usg
+  .byte  "siz"
+  .word  cmd_siz
   .byte  0
 
 help_txt:
