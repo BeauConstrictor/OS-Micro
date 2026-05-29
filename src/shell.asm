@@ -184,7 +184,8 @@ expect_arg:
 
 ; shutdown the machine
 cmd_bye:
-  halt
+  call fflush ; save any chan
+  halt        ; closest thing to a power off we have
 
 ; enter the firmware
 cmd_sys:
