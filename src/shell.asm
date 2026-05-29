@@ -285,6 +285,36 @@ cmd_wrt:
   call fwrite
   ret
 
+; list installed devices
+cmd_dev:
+  ld   a,0
+  ld   (DEV_SELECT),a
+.loop:
+  call busy_wait
+  ld   a,(DEV_STATUS)
+  and  DEV_ID
+  cp   NODEV
+  jr   z,.nodev
+  ld   hl,devlist_before
+  call print
+  ld   a,(DEV_SELECT)
+  call hex_out
+  ld   hl,devlist_after
+  call print
+  call get_devtype
+  call print
+  ld   a,'\n'
+  out  (SERIAL),a
+.nodev
+  ld   a,(DEV_SELECT)
+  inc  a
+  ld   (DEV_SELECT),a
+  jr   nz,.loop
+  call busy_wait
+  ld   hl,ansi_reset
+  call print
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
@@ -310,6 +340,8 @@ cmd_table:
   .word  cmd_ren
   .byte  "wrt"
   .word  cmd_wrt
+  .byte  "dev"
+  .word  cmd_dev
   .byte  0
 
 help_txt:
@@ -327,15 +359,22 @@ final_prompt:
 dir_separator:
   .asciiz "# "
 clear_scr:
-  .asciiz "\033[2J\033[H"
+  .asciiz "\e[2J\e[H"
 must_format_first:
-  .asciiz "\033[31mThat device is not formatted.\n\033[0m" 
+  .asciiz "\e[31mThat device is not formatted.\n\e[0m" 
 not_writeable:
-  .asciiz "\033[31mThat device is not writeable.\n\033[0m" 
+  .asciiz "\e[31mThat device is not writeable.\n\e[0m" 
 no_dev_there:
-  .asciiz "\033[31mThere is no device in that slot.\n\033[0m" 
+  .asciiz "\e[31mThere is no device in that slot.\n\e[0m" 
 missing_argument:
-  .asciiz "\033[31mMissing argument.\n\033[0m" 
+  .asciiz "\e[31mMissing argument.\n\e[0m" 
+devlist_before:
+  .asciiz "\e[90m"
+devlist_after:
+  .asciiz ": \e[0m"
+ansi_reset:
+  .asciiz "\e[0m"
+
   .endif ; SHELL_ASM
 
 

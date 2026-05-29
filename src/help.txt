@@ -15,3 +15,4 @@ Commands:
 [32mfmt [33m[dev]       [90m- [0mFormat a device with FS/128
 [32mnew [33m"nam"       [90m- [0mCreate a new file with a specified name
 [32mren [33m[fid] [33m"nam" [90m- [0mCreate a new file with a specified name
+[32mdev       [90m      - [0mList installed devices

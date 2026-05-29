@@ -308,4 +308,6 @@ disk_full:
 file_not_found:
   .asciiz "\e[31mFile not found.\n\e[0m"
 
+  .include "mmap.asm"
+
   .endif ; FS_ASM

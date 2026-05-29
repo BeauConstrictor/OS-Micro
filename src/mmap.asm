@@ -16,6 +16,11 @@ KERNEL      = $0100
 BUSY        = %00000010
 DEV_ID      = %11110000
 
+NODEV       = $00
+SECTD       = $10
+XMEM        = $20
+CUSTOM      = $f0
+
 RUN_LOAD    = $2000
 STACK_START = $bfff
 
