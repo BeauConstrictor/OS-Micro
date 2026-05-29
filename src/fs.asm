@@ -283,7 +283,7 @@ fwrite:
   ld   a,(de)
   ; if at end of string, stop
   cp   '\0'
-  ret  z
+  jr   z,.done
   ld   (hl),a
   inc  hl
   inc  de
@@ -292,6 +292,10 @@ fwrite:
   ; we pass the new sector back into chsect
   ld   (hl),a
   jr   .chsect
+.done:
+  ld   l,$ff ; go to sector byte
+  ld   (hl),0
+  ret
 
 ; flush all changes to disk
 ; clobbers: a
