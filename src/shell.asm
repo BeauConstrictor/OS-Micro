@@ -315,6 +315,19 @@ cmd_dev:
   call print
   ret
 
+; show how much disk space is used
+cmd_usg:
+  call disk_usg
+  ; divide by 4 to convert from units 256b sectors to units of 1024b
+  rrca
+  rrca
+  call num_out
+  ld   a,'K'
+  out  (SERIAL),a
+  ld   a,'\n'
+  out  (SERIAL),a
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
@@ -342,6 +355,8 @@ cmd_table:
   .word  cmd_wrt
   .byte  "dev"
   .word  cmd_dev
+  .byte  "usg"
+  .word  cmd_usg
   .byte  0
 
 help_txt:

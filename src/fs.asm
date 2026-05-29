@@ -293,14 +293,26 @@ fwrite:
 fflush:
   ld   a,(DEV_SECTOR)
   ld   (DEV_SECTOR),a
-  jr   busy_wait
+  jp   busy_wait
 
-; wait until the device busy flag is 0
-; clobbers: a
-busy_wait:
-  ld   a,(DEV_STATUS)
-  and  BUSY
-  jr   nz,busy_wait
+; returns the number of sectors used in the active disk in a
+; clobbers: TODO
+disk_usg:
+  ld   a,$01
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ld   hl,DEV_READ
+  ld   b,0
+  ld   c,0
+.loop:
+  ld   a,(hl)
+  cp   $ff
+  jr   nz,.unused
+  inc  c
+.unused:
+  inc  hl
+  djnz .loop
+  ld   a,c
   ret
 
 disk_full:
@@ -308,6 +320,7 @@ disk_full:
 file_not_found:
   .asciiz "\e[31mFile not found.\n\e[0m"
 
+  .include "dev.asm"
   .include "mmap.asm"
 
   .endif ; FS_ASM

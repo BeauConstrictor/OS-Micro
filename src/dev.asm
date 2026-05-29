@@ -53,6 +53,14 @@ dev_find:
   ld   a,(DEV_SELECT)
   ret
 
+; wait until the device busy flag is 0
+; clobbers: a
+busy_wait:
+  ld   a,(DEV_STATUS)
+  and  BUSY
+  jr   nz,busy_wait
+  ret
+
 devtype_nodev:
   .asciiz "No Device"
 devtype_sectd:

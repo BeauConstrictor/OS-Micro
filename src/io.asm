@@ -128,8 +128,6 @@ num_out:
     add  a,'0'
     out  (SERIAL),a
     djnz .print
-    ld   a,' '
-    out  (SERIAL),a
     pop  hl
     pop  de
     pop  bc
