@@ -67,6 +67,17 @@ get_char:
   jr   z,get_char
   ret
 
+; undo previous call to get_char
+; clobbers: a,hl
+unget_char:
+  ld   hl,(parse)
+  dec  hl
+  ld   a,(hl)
+  cp   ' '
+  jr   z,unget_char
+  ld   (parse),hl
+  ret
+
 ; output the hex byte in a
 ; clobbers: a,b
 hex_out:
@@ -179,6 +190,15 @@ hex_in:
 .digit:
   sub  '0'
   ret
+; read a 16-byte hex value into hl
+; clobbers: a,b,hl
+hex_word_in:
+  call hex_in
+  ld   e,a
+  call hex_in
+  ld   h,e
+  ld   l,a
+  ret
 
 ; print the null-terminated string (hl)
 ; clobbers: a,hl
@@ -189,5 +209,10 @@ print:
   out  (SERIAL),a
   inc  hl
   jr   print
+
+linebuf:
+  .reserve 128
+parse:
+  .reserve 2
 
   .endif ; IO_ASM

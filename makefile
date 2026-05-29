@@ -22,8 +22,7 @@ build/kernel.out: build
 build/disk: build/kernel.out | build
 	mkdir -p $@
 	cp build/kernel.out build/disk/_k
-	$(ASM) $(ASMFLAGS) -o build/disk/fib src/fib.asm
-	echo "Hello, world!" > build/disk/test.txt
+	$(ASM) $(ASMFLAGS) -o build/disk/monitor src/monitor.asm
 
 .PHONY: build/img.bin
 build/img.bin: build/bootloader.out build/disk | build
