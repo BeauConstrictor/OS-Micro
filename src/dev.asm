@@ -44,6 +44,8 @@ dev_find:
   ld   a,(DEV_SELECT)
   inc  a
   ld   (DEV_SELECT),a
+  ; if it wraps back around to zero, we have not found a matching
+  ; device
   jr   nz,.loop
   call busy_wait
   scf

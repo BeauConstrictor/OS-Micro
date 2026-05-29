@@ -296,7 +296,7 @@ fflush:
   jp   busy_wait
 
 ; returns the number of sectors used in the active disk in a
-; clobbers: TODO
+; clobbers: a,b,c,hl, sector
 disk_usg:
   ld   a,$01
   ld   (DEV_SECTOR),a
@@ -310,6 +310,7 @@ disk_usg:
   jr   nz,.unused
   inc  c
 .unused:
+  ld   a,c
   inc  hl
   djnz .loop
   ld   a,c

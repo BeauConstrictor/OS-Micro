@@ -319,8 +319,10 @@ cmd_dev:
 cmd_usg:
   call disk_usg
   ; divide by 4 to convert from units 256b sectors to units of 1024b
-  rrca
-  rrca
+  or a ; (clear carry)
+  rra
+  or a ; (clear carry)
+  rra
   call num_out
   ld   a,'K'
   out  (SERIAL),a

@@ -32,7 +32,7 @@ find_kernel:
 .notfound:
   ld   hl,kernel_notfound
   call print
-  halt
+  jp   BIOS
 .found:
   ld   a,'\n'
   out  (SERIAL),a
