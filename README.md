@@ -24,7 +24,9 @@ the fantasy computer that OS/M runs under. Then, download the latest
 release of OS/M from this repo. You can then boot the operating
 system like this (assuming you have `osm.bin` in your directory):
 
-```sh ozm -m bdsk:osm.bin@0 ```
+```sh
+ozm -m bdsk:osm.bin@0
+```
 
 This distribution image also includes two programs: a hex monitor
 and a basic pong game (which uses vim keybinds for movement). The
@@ -52,7 +54,9 @@ message:
 
 ...like this:
 
-```sh vasmz80_oldstyle -dotdir -Fbin -esc hello.asm -o hello ```
+```
+sh vasmz80_oldstyle -dotdir -Fbin -esc hello.asm -o hello
+```
 
 As long as you have copied the needed libraries (`mmap.asm` and
 `io.asm`) from the the latest released into your directory.
@@ -61,13 +65,22 @@ Then, you just have to create a disk image with your program on it.
 This repository includes a [utility](src/fs128-tool.py) just for
 this purpose (you need Python to run the tool):
 
-``` python3 fs128-tool.py hello -o mydisk.bin ```
+```
+python3 fs128-tool.py hello -o mydisk.bin
+```
 
 Once you have a disk image, you just need to boot into OS/M and
 run your program!
 
-``` $ ozm -m bdsk:osm.bin@0 -m disk:mydisk.bin@1 00 ~> dsk 01 01 ~>
-dir 06# hello 01 ~> run 06 Hello, world!  01 ~> ```
+```
+$ ozm -m bdsk:osm.bin@0 -m disk:mydisk.bin@1
+00 ~> dsk 01
+01 ~> dir
+06# hello
+01 ~> run 06
+Hello, world!
+01 ~>
+```
 
 That's all it takes to develop for OS/M!
 
