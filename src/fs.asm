@@ -269,7 +269,7 @@ frename:
 ; NOTE: should not be used to overwrite a file's contents, only for
 ; writing to a new file. delete old ones first (for now).
 ; (a null-terminated string)
-; clobbers: a,b,de,hl
+; clobbers: a,b,c,de,hl
 fwrite:
   ld   d,h
   ld   e,l
@@ -342,7 +342,6 @@ fsize:
   ld   (DEV_SECTOR),a
   call busy_wait
   inc  b
-.loop:
   ld   a,(hl) ; read the next sector
   cp   0 ; check if there even is another sector
   jr   nz,.chsect
@@ -350,8 +349,45 @@ fsize:
   ret
 
 ; delete the file in a
+; clobbers: TODO
 fdel:
-  
+  push af
+.chsect:
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ld   a,(DEV_SECTOR)
+  call mkfree
+  ld   hl,DEV_READ
+  ld   l,$ff ; go straight to sector byte
+  ld   a,(hl)
+  cp   0
+  jr   nz,.chsect
+  ; now, we need to find that fid's entry in the directory
+  ld   a,$02
+  ld   (DEV_SECTOR),a
+  ; go back to original sector
+  pop  af
+  ld   b,a
+  ld   hl,DEV_READ
+.findloop:
+  ld   de,15
+  add  hl,de
+  ld   a,(hl)
+  cp   b
+  jr   z,.found
+  ; we have already added 15, add one more to go to next entry
+  inc  hl
+  jr   .findloop
+.found:
+  ld   de,15
+  xor  a ; clear carry flag
+  sbc  hl,de
+  ; clear the file entry
+  ld   b,16
+.clear:
+  ld   (hl),0
+  inc  hl
+  djnz .clear
   ret
 
 disk_full:

@@ -348,6 +348,12 @@ cmd_siz:
   out  (SERIAL),a
   ret
 
+; delete a file
+cmd_del:
+  call hex_in
+  call fdel
+  ret
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
@@ -379,6 +385,8 @@ cmd_table:
   .word  cmd_usg
   .byte  "siz"
   .word  cmd_siz
+  .byte  "del"
+  .word  cmd_del
   .byte  0
 
 help_txt:
