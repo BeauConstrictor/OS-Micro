@@ -37,7 +37,7 @@ with the OS's libraries. Using
 [`vasm`](http://www.compilers.de/vasm.html), you can compile this
 hello world program:
 
-```
+```asm
   .include "mmap.asm"
 
   .org RUN_LOAD
@@ -60,7 +60,7 @@ vasmz80_oldstyle -dotdir -Fbin -esc hello.asm -o hello
 ```
 
 As long as you have copied the needed libraries (`mmap.asm` and
-`io.asm`) from this repo's `src/` into your directory.
+`io.asm`) from the the latest released into your directory.
 
 Then, you just have to create a disk image with your program on it.
 This repository includes a [utility](src/fs128-tool.py) just for this
