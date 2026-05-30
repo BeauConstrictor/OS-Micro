@@ -52,18 +52,18 @@ message:
   .include "io.asm"
 ```
 
-...like this:
+...like this, as long as you have copied the needed libraries
+(`mmap.asm` and `io.asm`) from the the latest release into your
+directory:
 
 ```
 sh vasmz80_oldstyle -dotdir -Fbin -esc hello.asm -o hello
 ```
 
-As long as you have copied the needed libraries (`mmap.asm` and
-`io.asm`) from the the latest released into your directory.
 
 Then, you just have to create a disk image with your program on it.
 This repository includes a [utility](src/fs128-tool.py) just for
-this purpose (you need Python to run the tool):
+that (you need Python to run the tool):
 
 ```
 python3 fs128-tool.py hello -o mydisk.bin
@@ -82,7 +82,10 @@ Hello, world!
 01 ~>
 ```
 
-That's all it takes to develop for OS/M!
+That's all it takes to develop for OS/M! If you want to write more
+complex programs, it make help to take a look at the source of some
+of the OS libraries, as I am told they are quite readable - some
+familiarity with Z80 assembly with help of course.
 
 ## Shell
 
