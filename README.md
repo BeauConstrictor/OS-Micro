@@ -79,7 +79,7 @@ $ ozm -m bdsk:osm.bin@0 -m disk:mydisk.bin@1
 00 ~> dsk 01
 01 ~> dir
 06# hello
-01 ~> run 06
+01 ~> hello
 Hello, world!
 01 ~>
 ```
@@ -92,14 +92,8 @@ familiarity with Z80 assembly with help of course.
 ## Shell
 
 OS/Micro's shell uses 3 letter commands, followed by any number of
-arguments. If you want to read a file, use the `txt` command. If
-you want to run a file, you use the, well, `run` command.
-
-However, you can't pass filenames to these commands directly (at
-least not yet).  Instead, you use the `dir` command to list all
-your files on the current disk, along with their *FIDs*. These are
-unique two digit hex numbers that represent a file on disk. It is
-the FID that you pass to commands (always include the leading zero!).
+arguments. If you want to read a file, use the `txt` command. If you
+want to run a command, just type it's name.
 
 If you are curious how the filesystem works, read the FS/128
 [spec](https://github.com/BeauConstrictor/OS-128/blob/main/filesystem.md).
