@@ -23,6 +23,7 @@ build/disk: build/kernel.out | build
 	mkdir -p $@
 	cp build/kernel.out build/disk/_k
 	$(ASM) $(ASMFLAGS) -o build/disk/monitor src/monitor.asm
+	$(ASM) $(ASMFLAGS) -o build/disk/pong src/pong.asm
 
 .PHONY: build/img.bin
 build/img.bin: build/bootloader.out build/disk | build
