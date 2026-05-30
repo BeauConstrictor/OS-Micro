@@ -276,6 +276,10 @@ fwrite:
 .chsect:
   ld   (DEV_SECTOR),a
   call busy_wait
+  ld   a,(DEV_SECTOR)
+  push de
+  call mkused
+  pop  de
   ; only 255 bytes of data per sector!
   ld   b,255
   ld   hl,DEV_READ
@@ -289,12 +293,15 @@ fwrite:
   inc  de
   djnz .write
   call getfree
-  ; we pass the new sector back into chsect
   ld   (hl),a
+  ; we pass the new sector back into chsect
   jr   .chsect
 .done:
-  ld   l,$ff ; go to sector byte
-  ld   (hl),0
+  inc  b ; this time, we do want to write to the sector byte
+.zeroout:
+  ld   a,'\0'
+  ld   (hl),a
+  djnz .zeroout
   ret
 
 ; flush all changes to disk
@@ -340,6 +347,11 @@ fsize:
   cp   0 ; check if there even is another sector
   jr   nz,.chsect
   ld   a,b
+  ret
+
+; delete the file in a
+fdel:
+  
   ret
 
 disk_full:
