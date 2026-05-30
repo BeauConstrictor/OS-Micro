@@ -4,9 +4,9 @@ If you can see this, you have successfully booted into OS/M and run
 your first program - the pager.
 
 From here, you try whatever you want from the shell. I would recommend
-trying to pong game, as primitive as it is, because it shows you
+trying a Pong game, as primitive as it is, because it shows you
 what to expect from 'graphics' on the Ozpex Micro. If you're stuck,
-remember from the README that the pong game actually uses vim's
+remember from the README that the Pong game actually uses Vim's
 j/k keys for movement.
 
 In reality, there is not much you can actually do from within OS/M.
