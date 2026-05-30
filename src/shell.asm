@@ -329,19 +329,15 @@ cmd_usg:
   out  (SERIAL),a
   ; technically, .25, .5 and .75 all end in 5, so we only print the
   ; first digit (or nothing for .5) in .quarter_out
-  ld   a,'5'
-  out  (SERIAL),a
-  ld   a,'K'
-  out  (SERIAL),a
-  ld   a,'\n'
-  out  (SERIAL),a
+  ld   hl,usg_after
+  call print
   ret
 .get_quarter:
   cp   1
-  jr   .one_quarter
+  jr   z,.one_quarter
   cp   2
-  jr   .one_half
-  ; otherwise, must be 3
+  jr   z,.one_half
+  ; otherwise, must be 3 quarters
   ld   a,'7'
   ret
 .one_quarter:
@@ -437,6 +433,8 @@ devlist_after:
   .asciiz ": \e[0m"
 ansi_reset:
   .asciiz "\e[0m"
+usg_after:
+  .asciiz "5K / 64K\n"
 
   .endif ; SHELL_ASM
 
