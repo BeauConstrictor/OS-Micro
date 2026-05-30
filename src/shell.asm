@@ -194,7 +194,8 @@ cmd_dsk:
   ld   (DEV_SELECT),a
   call busy_wait
   call chkdsk
-  ret  nc
+  jr   nc,.hasfs
+.invalid:
   ; invalid!
   ld   a,d
   ; go back to original device
@@ -202,6 +203,14 @@ cmd_dsk:
   ld   hl,must_format_first
   call print
   ret
+.hasfs:
+  ; check if the device id is SECTD
+  ld   a,(DEV_STATUS)
+  and  DEV_ID
+  cp   SECTD
+  ret  z
+  ld   hl,not_a_disk
+  jp   print
 
 ; show help text
 cmd_hlp:
@@ -219,6 +228,8 @@ cmd_run:
 
 ; format a disk for fs/128
 cmd_fmt:
+  ld   a,(DEV_SELECT)
+  push af
   call hex_in
   ld   (DEV_SELECT),a
   call busy_wait
@@ -226,16 +237,27 @@ cmd_fmt:
   and  DEV_ID
   cp   0
   jr   z,.nodev
+  cp   SECTD
+  jr   nz,.notadisk
   call fmtdsk
   call chkdsk
   ret  nc
   ld   hl,not_writeable
   call print
+  pop  af
   ret
 .nodev:
+  pop  af
+  ld   (DEV_SELECT),a
+  call busy_wait
   ld   hl,no_dev_there
-  call print
-  ret
+  jp   print
+.notadisk:
+  pop  af
+  ld   (DEV_SELECT),a
+  call busy_wait
+  ld   hl,not_a_disk
+  jp   print
 
 ; create a new file
 cmd_new:
@@ -421,6 +443,8 @@ clear_scr:
   .asciiz "\e[2J\e[H"
 must_format_first:
   .asciiz "\e[31mThat device is not formatted.\n\e[0m" 
+not_a_disk:
+  .asciiz "\e[31mThat device is not a disk.\n\e[0m"
 not_writeable:
   .asciiz "\e[31mThat device is not writeable.\n\e[0m" 
 no_dev_there:
