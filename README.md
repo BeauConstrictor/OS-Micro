@@ -44,7 +44,9 @@ hello world program:
   .org RUN_LOAD
 
 start:
-  ld   hl,message call print ret
+  ld   hl,message
+  call print
+  ret
 
 message:
   .asciiz "Hello, world!\n"
