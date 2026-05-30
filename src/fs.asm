@@ -209,6 +209,17 @@ fnew:
   push af
   call mkused
   pop  af
+  ; zero out the allocated sector
+  ld   (DEV_SECTOR),a
+  push af
+  call busy_wait
+  pop  af
+  ld   b,0
+  ld   hl,DEV_READ
+.zeroout:
+  ld   (hl),0
+  inc  hl
+  djnz .zeroout
   ret
 
 ; rename the file in the a register to the string hl
