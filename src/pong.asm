@@ -106,6 +106,10 @@ draw_game:
 step:
   ; move player
   in   a,(SERIAL)
+
+  cp   '\e'
+  jp   z,kill
+
   cp   'j'
   jr   nz,.not_down
   ld   a,(plry)

@@ -242,8 +242,8 @@ print:
   inc  hl
   jr   print
 
-linebuf:
-  .reserve 128
+linebuf = $0000 ; overwrites the bootloader
+
 parse:
   .reserve 2
 

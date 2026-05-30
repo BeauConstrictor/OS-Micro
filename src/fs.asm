@@ -4,16 +4,69 @@
 ;
 ; Files are passed around as single bytes called 'fids'. These are
 ; similar to FILE* in c expect you do not need to open and closet
-; them. To get the fid of a file, you will eventually be able to use
-; ffind
+; them.
 
   .ifndef FS_ASM
 FS_ASM = 1
 
-; return in a the id of the null-terminated filename (hl)
+; return in a the fid of the null-terminated filename in hl
 ffind:
-  ; TODO: implement
+  ld   d,h
+  ld   e,l
+  ld   a,$02
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ld   hl,DEV_READ
+.chentry:
+  ld   c,0
+.cmp:
+  ld   a,(hl)
+  push af
+  ld   a,(de)
+  ld   b,a
+  pop  af
+  cp   b
+  jr   nz,.noteq
+  cp   '\0'
+  jr   z,.found
+  inc  hl
+  inc  de
+  inc  c
+  jr   .cmp
+.found:
+  ld   b,0
+  xor  a ; clear the carry flag
+  ; go back to the start of the directory entry
+  sbc  hl,bc
+  ld   de,15
+  ; go to sector byte
+  add  hl,de
+  ld   a,(hl)
   ret
+.noteq:
+  ; subtract however many chars we matched from hl and de to go back
+  ; to start
+  ld   b,0
+  xor  a
+  sbc  hl,bc
+  push hl
+  ld   h,d
+  ld   l,e
+  sbc  hl,bc
+  ld   d,h
+  ld   e,l
+  pop  hl
+  ; go to next directory entry
+  ld   bc,16
+  add  hl,bc
+  ld   a,l
+  cp   0
+  jr   z,.notfound
+  jr   .chentry
+.notfound:
+  ld   hl,file_not_found
+  call print
+  jp   panic
 
 ; load the file starting at the sector in the a register into memory,
 ; starting at hl
@@ -128,7 +181,7 @@ getfree:
   djnz .loop
   ld   hl,disk_full
   call print
-  halt
+  jp   panic
 .found:
   ; go back to original sector
   ld   a,e
@@ -187,7 +240,7 @@ fnew:
   djnz .loop
   ld   hl,disk_full
   call print
-  halt
+  jp   panic
 .found:
   ld   a,'n'
   ld   (hl),a
@@ -254,7 +307,7 @@ frename:
 .notfound:
   ld   hl,file_not_found
   call print
-  halt
+  jp   panic
 .found:
   push de
   ld   de,15
@@ -399,6 +452,12 @@ fdel:
   ld   (hl),0
   inc  hl
   djnz .clear
+  ret
+
+; handle an error
+panic:
+  ld   sp,STACK_START
+  jp   KERNEL
   ret
 
 disk_full:

@@ -10,10 +10,11 @@ start:
   dec  a ; don't include the status line
   ld   (term_height),a
 
-  ld   hl,fid_prompt
+  ld   hl,file_prompt
   call print
   call buffer_l
-  call hex_in
+  ld   hl,(parse)
+  call ffind
 
   ld   hl,file
   call fload
@@ -88,8 +89,8 @@ norm_term:
   .byte   "\e[?1049l"
   .asciiz "\e[?25h"
 
-fid_prompt:
-  .asciiz "\e[90mFID?\e[0m "
+file_prompt:
+  .asciiz "\e[90mFile?\e[0m "
 height_prompt:
   .asciiz "\e[90mTerminal lines (in 2-digit hex!)?\e[0m "
 key_prompt:

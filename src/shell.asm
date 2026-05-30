@@ -4,6 +4,10 @@ SHELL_ASM = 1
 welcome:
   ld   hl,welcome_msg
   call print
+  ; remove the welcome string so if a panic sends us back here, we
+  ; don't print it again
+  ld   hl,welcome_msg
+  ld   (hl),0
 shell:
   ld   sp,STACK_START
   call shell_prompt
@@ -68,24 +72,12 @@ exec_cmd:
   jr   z,.notfound
   jr   .check_match
 .notfound:
-  ld   a,c
-  cp   '\0'
-  jr   z,.endofcmd
-  out  (SERIAL),a
-  ld   a,d
-  cp   '\0'
-  jr   z,.endofcmd
-  out  (SERIAL),a
-  ld   a,e
-  cp   '\0'
-  jr   z,.endofcmd
-  out  (SERIAL),a
-.endofcmd:
-  ld   a,'?'
-  out  (SERIAL),a
-  ld   a,'\n'
-  out  (SERIAL),a
-  ret
+  ld   hl,linebuf
+  ld   (parse),hl
+  call ffind
+  ld   hl,RUN_LOAD
+  call fload
+  jp   RUN_LOAD
 
 ; list files and their first sectors
 cmd_dir:
@@ -127,7 +119,9 @@ cmd_dir:
 
 ; output the contents of a file as text
 cmd_txt:
-  call hex_in
+  call expect_arg
+  ld   hl,(parse)
+  call ffind
 .chsect:
   ld   (DEV_SECTOR),a
   call busy_wait
@@ -218,14 +212,6 @@ cmd_hlp:
   call print
   ret
 
-; run a program
-cmd_run:
-  call hex_in
-  ld   hl,RUN_LOAD
-  call fload
-  jp   RUN_LOAD
-  ; ret
-
 ; format a disk for fs/128
 cmd_fmt:
   ld   a,(DEV_SELECT)
@@ -276,6 +262,7 @@ cmd_ren:
   ret
 
 ; set the contents of an empty text file
+; TODO: make this work with ffind
 cmd_wrt:
   call hex_in
   ld   b,a
@@ -371,6 +358,9 @@ cmd_usg:
 
 ; show how large a file is
 cmd_siz:
+  call expect_arg
+  ld   hl,(parse)
+  call ffind
   call hex_in
   call fsize
   ld   h,a
@@ -403,8 +393,6 @@ cmd_table:
   .word  cmd_dsk
   .byte  "hlp"
   .word  cmd_hlp
-  .byte  "run"
-  .word  cmd_run
   .byte  "fmt"
   .word  cmd_fmt
   .byte  "new"
