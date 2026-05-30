@@ -111,7 +111,7 @@ hex_out:
   ret
 
 ; output decimal byte in a
-; clobbers: <none.
+; clobbers: <none>
 num_out:
     push af
     push bc

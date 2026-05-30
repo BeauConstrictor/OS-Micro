@@ -147,18 +147,6 @@ cmd_txt:
   jr   nz,.chsect
   ret
 
-; return if a is printable in the carry flag
-is_printable:
-  cp  $20
-  jr  c,.no
-  cp  $7f
-  jr  nc,.no
-  scf
-  ret
-.no:
-  or  a
-  ret
-
 ; check for a space and at least one more char. fails if not
 ; clobbers: <nothing>
 expect_arg:
@@ -323,16 +311,44 @@ cmd_dev:
 ; show how much disk space is used
 cmd_usg:
   call disk_usg
+  ld   c,a
+  ; get the 'decimal point' of sectors used (0-3)
+  and  %00000011
+  push af
+  ld   a,c
   ; divide by 4 to convert from units 256b sectors to units of 1024b
   or a ; (clear carry)
   rra
   or a ; (clear carry)
   rra
   call num_out
+  ld   a,'.'
+  out  (SERIAL),a
+  pop  af
+  call .get_quarter
+  out  (SERIAL),a
+  ; technically, .25, .5 and .75 all end in 5, so we only print the
+  ; first digit (or nothing for .5) in .quarter_out
+  ld   a,'5'
+  out  (SERIAL),a
   ld   a,'K'
   out  (SERIAL),a
   ld   a,'\n'
   out  (SERIAL),a
+  ret
+.get_quarter:
+  cp   1
+  jr   .one_quarter
+  cp   2
+  jr   .one_half
+  ; otherwise, must be 3
+  ld   a,'7'
+  ret
+.one_quarter:
+  ld   a,'2'
+.one_half:
+  ; if you print null, nothing happens so we just print that
+  ld   a,'\0'
   ret
 
 ; show how large a file is
