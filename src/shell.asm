@@ -254,6 +254,7 @@ cmd_new:
   ret
 
 ; rename a file
+; TODO: make this work with ffind
 cmd_ren:
   call hex_in
   call expect_arg
@@ -331,8 +332,6 @@ cmd_usg:
   or a ; (clear carry)
   rra
   call num_out
-  ld   a,'.'
-  out  (SERIAL),a
   pop  af
   call .get_quarter
   out  (SERIAL),a
@@ -342,6 +341,10 @@ cmd_usg:
   call print
   ret
 .get_quarter:
+  cp   0
+  ret  z
+  ld   a,'.'
+  out  (SERIAL),a
   cp   1
   jr   z,.one_quarter
   cp   2
@@ -361,7 +364,6 @@ cmd_siz:
   call expect_arg
   ld   hl,(parse)
   call ffind
-  call hex_in
   call fsize
   ld   h,a
   ld   l,0
@@ -374,7 +376,9 @@ cmd_siz:
 
 ; delete a file
 cmd_del:
-  call hex_in
+  call expect_arg
+  ld   hl,(parse)
+  call ffind
   call fdel
   ret
 

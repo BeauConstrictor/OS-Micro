@@ -9,4 +9,3 @@ start:
   .include "dev.asm"
   .include "mmap.asm"
   .include "shell.asm"
-  .include "uninitialised.asm"
