@@ -116,7 +116,7 @@ Vasm allows you to create one of these 'strings' easily using the
 
 For a more thorough description of every subroutine included in every
 library, I implore you to read through the source code. which contains
-plenty of comments for documents. I find it easier to keep my
+plenty of comments for documentation. I find it easier to keep my
 documentation up-to-date when it is in the same place as the source
 code.
 
