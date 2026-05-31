@@ -4,13 +4,11 @@ If you can see this, you have successfully booted into OS/M and run
 your first program - the pager.
 
 From here, you try whatever you want from the shell. I would recommend
-trying a Pong game, as primitive as it is, because it shows you
-what to expect from 'graphics' on the Ozpex Micro. If you're stuck,
-remember from the README that the Pong game actually uses Vim's
-j/k keys for movement.
+trying the XO game, as primitive as it is, because it shows you
+what to expect from 'graphics' on the Ozpex Micro.
 
-In reality, there is not much you can actually do from within OS/M.
-Only about 3 programs exist for it that I know of, and those programs
+In reality, there is not much to actually do from within OS/M. Only
+about 3 programs exist for it that I know of, and those programs
 mainly serve as demos of the system. The primary purpose of OS/M
 and the Ozpex Micro as a whole is to serve as a rewarding and simple
 retro system to target and practice your assembly skills in.
@@ -18,7 +16,7 @@ retro system to target and practice your assembly skills in.
 To that end, this document will help you get started with OS/M
 development. There don't currently exist any development tools
 that run from within the OS/M environment, so you will have to
-cross assemble. Thankfully, it is incredibly easy to start writing
+cross-assemble. Thankfully, it is incredibly easy to start writing
 assembly for OS/M on your machine.
 
 First, you will need a Z80 assembler. I recommend vasmz80_oldstyle,
@@ -123,9 +121,9 @@ code.
 Otherwise, I hope you are now in a comfortable position to start
 writing Z80 assembly! If you still feel lost, take a look at any
 of the programs I have written that go into the distribution disk. I'm
-told they're quite readable, and I haven't spent my time on any one of
-them (pong took me a grand total of 45 minutes), so they're all fairly
-simple.
+told they're quite readable, and I haven't spent much time on any one
+of them (pong took me a grand total of 45 minutes), so they're all
+fairly simple.
 
 ---------------------------------
 DID YOU JUST RUN THE TXT COMMAND?
