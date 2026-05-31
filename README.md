@@ -29,7 +29,7 @@ ozm -m bdsk:osm.bin@0
 ```
 
 This distribution image also includes two programs: a hex monitor
-and a basic pong game (which uses vim keybinds for movement). The
+and a basic Xs & Os game (which uses vim keybinds for movement). The
 hex monitor uses quite an archaic syntax which is explained in the
 [source file](src/monitor.asm).
 
