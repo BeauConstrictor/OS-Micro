@@ -150,8 +150,8 @@ separator:
   .asciiz "\n        \e[90m---+---+---\e[0m"
 
 x_turn:
-  .asciiz "\n\n\e[90m  x's turn (digit first): \e[0m"
+  .asciiz "\n\n\e[90m  x's turn (digit first): \e[0m\e[31m"
 o_turn:
-  .asciiz "\n\n\e[90m  o's turn (digit first): \e[0m"
+  .asciiz "\n\n\e[90m  o's turn (digit first): \e[0m\e[31m"
 
   .include "io.asm"
