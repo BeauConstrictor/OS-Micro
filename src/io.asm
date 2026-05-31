@@ -55,6 +55,22 @@ buffer_l:
   ld   (parse),hl
   ret
 
+; replace the first space after (parse) with a \0, and return a
+; pointer to the next char after that space in hl
+; clobbers: TODO
+splitarg:
+  ld   hl,(parse)
+.loop:
+  ld   a,(hl)
+  cp   ' '
+  jr   z,.found
+  inc  hl
+  jr   .loop
+.found:
+  ld   (hl),'\0'
+  inc  hl
+  ret
+
 ; read a single char from the input buffer and advance to the next
 ; char (skips whitespace) (returns in a)
 ; clobbers: a,hl
@@ -242,9 +258,7 @@ print:
   inc  hl
   jr   print
 
-linebuf = $0000 ; overwrites the bootloader
-
-parse:
-  .reserve 2
+parse   = $0000
+linebuf = $0002 ; overwrites the bootloader
 
   .endif ; IO_ASM

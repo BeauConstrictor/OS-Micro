@@ -23,9 +23,9 @@ build/disk: build/kernel.out | build
 	mkdir -p $@
 	cp build/kernel.out build/disk/_k
 	cp welcome.txt build/disk/
-	$(ASM) $(ASMFLAGS) -o build/disk/monitor src/monitor.asm
+	$(ASM) $(ASMFLAGS) -o build/disk/hexmon src/hexmon.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/pager src/pager.asm
-	$(ASM) $(ASMFLAGS) -o build/disk/pong src/pong.asm
+	$(ASM) $(ASMFLAGS) -o build/disk/xo src/xo.asm
 
 .PHONY: build/osm.bin
 build/osm.bin: build/bootloader.out build/disk | build
@@ -34,7 +34,7 @@ build/osm.bin: build/bootloader.out build/disk | build
 .PHONY: run
 run: all
 	clear
-	ozm -m bdsk:build/osm.bin@00 -m xm@01
+	@ozm -m bdsk:build/osm.bin@00 -m xm@01
 
 .PHONY: clean
 clean:

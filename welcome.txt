@@ -134,9 +134,8 @@ DID YOU JUST RUN THE TXT COMMAND?
 If you tried to read this file using the txt command, try using the
 pager program so you can read from the top. You can use it like this:
 
-  00 ~> pager
+  00 ~> pager welcome.txt
   Terminal lines (in two-digit hex!)? xx
-  File? welcome.txt
 
 If your unsure how many lines your terminal has, run this command in
 your normal shell:

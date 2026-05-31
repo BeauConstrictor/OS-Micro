@@ -1,5 +1,5 @@
 These commands are defined internally. To run an external program,
-type it's name:
+type it's name.
 
 Commands:
 

@@ -74,7 +74,12 @@ exec_cmd:
 .notfound:
   ld   hl,linebuf
   ld   (parse),hl
+  call splitarg
+  push hl
+  ld   hl,linebuf
   call ffind
+  pop  hl
+  ld   (parse),hl
   ld   hl,RUN_LOAD
   call fload
   jp   RUN_LOAD

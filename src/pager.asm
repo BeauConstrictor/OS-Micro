@@ -3,6 +3,14 @@
   .org RUN_LOAD
 
 start:
+  ; the string is passed in as an argument
+  ld   hl,(parse)
+  call ffind
+  ld   hl,file
+  call fload
+
+  ; we will autodetect this at some pointer, but that's surprisingly
+  ; hard to do
   ld   hl,height_prompt
   call print
   call buffer_l
@@ -10,15 +18,7 @@ start:
   dec  a ; don't include the status line
   ld   (term_height),a
 
-  ld   hl,file_prompt
-  call print
-  call buffer_l
-  ld   hl,(parse)
-  call ffind
-
-  ld   hl,file
-  call fload
-
+  ; goes into the alternate screen buffer and hides the terminal
   ld   hl,init_term
   call print
 
@@ -31,6 +31,8 @@ start:
   in   a,(SERIAL)
   cp   0
   jr   z,.wait
+  ; once a key is pressed, clear the line with the prompt on it so
+  ; we can write lines there
   push af
   ld   hl,key_pressed
   call print
@@ -45,6 +47,7 @@ start:
 .draw_line:
   ld   hl,(head)
   call draw_line
+  ; make sure to move the head to the next line
   ld   (head),hl
   jr   .loop
 .exit:
@@ -52,6 +55,7 @@ start:
   call print
   ret
 
+; just calls draw_line <terminal_height-1> times
 draw_page:
   ld   a,(term_height)
   ld   b,a
@@ -62,6 +66,7 @@ draw_page:
   ld   (head),hl
   ret
 
+; prints characters until a \n (prints the \n too)
 draw_line:
 .loop:
   ld   a,(hl)
@@ -77,6 +82,7 @@ draw_line:
 
 term_height:
   .reserve 1
+; the next character to start printing from
 head:
   .word file
 
@@ -101,4 +107,6 @@ key_pressed:
   .include "io.asm"
   .include "fs.asm"
 
+; start in ram at the point after our program is loaded. we don't
+; reserve any space because that space would be included in the binary
 file:
