@@ -34,7 +34,7 @@ build/osm.bin: build/bootloader.out build/disk | build
 .PHONY: run
 run: all
 	clear
-	@ozm -m bdsk:build/osm.bin@00 -m xm@01
+	@ozm -m bdsk:build/osm.bin@00 -m xmem@01
 
 .PHONY: clean
 clean:
