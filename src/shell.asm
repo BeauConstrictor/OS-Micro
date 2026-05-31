@@ -98,20 +98,6 @@ cmd_dir:
   cp   '_' ; hidden files
   jr   z,.unoccupied
   push hl
-  ld   c,b
-  ld   de,15
-  add  hl,de
-  ld   a,(hl)
-  push af
-  ld   hl,dir_fid_color
-  call print
-  pop  af
-  call hex_out
-  ld   hl,dir_separator
-  call print
-  ld   b,c
-  pop  hl
-  push hl
   call print
   pop  hl
   ld   a,'\n'
@@ -439,8 +425,6 @@ final_prompt:
   .asciiz "\e[0m"
 dir_fid_color:
   .asciiz "\e[90m"
-dir_separator:
-  .asciiz "#\e[0m "
 clear_scr:
   .asciiz "\e[2J\e[H"
 must_format_first:
