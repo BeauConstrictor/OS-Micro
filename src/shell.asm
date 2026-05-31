@@ -259,22 +259,27 @@ cmd_new:
   ret
 
 ; rename a file
-; TODO: make this work with ffind
 cmd_ren:
-  call hex_in
   call expect_arg
+  call splitarg
+  push hl
   ld   hl,(parse)
+  call ffind
+  pop  hl
   call frename
   ret
 
 ; set the contents of an empty text file
-; TODO: make this work with ffind
 cmd_wrt:
-  call hex_in
-  ld   b,a
   call expect_arg
-  ; add a newline to the end of the string
+  call splitarg
+  push hl
   ld   hl,(parse)
+  call ffind
+  ld   b,a
+  pop  hl
+  push hl
+  ; add a newline to the end of the string
 .findterminator:
   ld   a,(hl)
   cp   '\0'
@@ -288,7 +293,7 @@ cmd_wrt:
   ld   a,'\0'
   ld   (hl),a
   ; go back to start
-  ld   hl,(parse)
+  pop  hl
   ld   a,b
   call fwrite
   ret

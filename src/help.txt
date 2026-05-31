@@ -3,17 +3,17 @@ type it's name.
 
 Commands:
 
-[32mhlp       [90m       - [0mShow this help
-[32mdsk [33m[disk]       [90m- [0mChange disk
-[32mtxt [33m[file]       [90m- [0mShow the contents of a text file
-[32mdir       [90m       - [0mShow all files on disk and their ids
-[32mbye       [90m       - [0mShutdown the machine
-[32mwrt [33m[fid] [33m"txt"  [90m- [0mSave some text into a blank file
-[32msys       [90m       - [0mEnter the system firmware
-[32mcls       [90m       - [0mClear the screen
-[32mfmt [33m[disk]       [90m- [0mFormat a device with FS/128
-[32mnew [33m"name"       [90m- [0mCreate a new file with a specified name
-[32mren [33m[fid] [33m"name" [90m- [0mChange the name of a file
-[32mdev       [90m       - [0mList installed devices
-[32musg       [90m       - [0mList how much disk space is in use
-[32msiz [33m[file]       [90m- [0mCheck the size of a file
+[32mhlp       [90m        - [0mShow this help
+[32mdsk [33m[disk]        [90m- [0mChange disk
+[32mtxt [33m[file]        [90m- [0mShow the contents of a text file
+[32mdir       [90m        - [0mShow all files on disk and their ids
+[32mbye       [90m        - [0mShutdown the machine
+[32mwrt [33m[file] [33m"text" [90m- [0mSave some text into a blank file
+[32msys       [90m        - [0mEnter the system firmware
+[32mcls       [90m        - [0mClear the screen
+[32mfmt [33m[disk]        [90m- [0mFormat a device with FS/128
+[32mnew [33m"name"        [90m- [0mCreate a new file with a specified name
+[32mren [33m[file] [33m"name" [90m- [0mChange the name of a file
+[32mdev       [90m        - [0mList installed devices
+[32musg       [90m        - [0mList how much disk space is in use
+[32msiz [33m[file]        [90m- [0mCheck the size of a file
