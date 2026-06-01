@@ -6,7 +6,7 @@ heavy inspiration from CP/M.
 
 ![A screenshot of the help command](assets/screenshot.png)
 
-The operating system is built in 3 layers:
+The operating system is built in 4 layers:
 
 1. The bootloader, which is very minimal as it has to fit into just
    256 bytes.
@@ -14,6 +14,8 @@ The operating system is built in 3 layers:
    with external devices.
 3. The shell, which allows the user to run simple commands which wrap
    library functions and load programs from disk.
+4. The userland programs, which are more complex and interactive than
+   the shell commands.
 
 # Getting Started
 
