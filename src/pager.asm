@@ -13,6 +13,9 @@ start:
   ld   hl,init_term
   call print
 
+  ; move cursor to the bottom of the screen
+  call add_newlines
+  call add_newlines
   call add_newlines
 
 .draw_page:

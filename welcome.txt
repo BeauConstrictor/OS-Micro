@@ -122,7 +122,7 @@ Otherwise, I hope you are now in a comfortable position to start
 writing Z80 assembly! If you still feel lost, take a look at any
 of the programs I have written that go into the distribution disk. I'm
 told they're quite readable, and I haven't spent much time on any one
-of them (pong took me a grand total of 45 minutes), so they're all
+of them (xo took me a grand total of 10 minutes), so they're all
 fairly simple.
 
 ---------------------------------
