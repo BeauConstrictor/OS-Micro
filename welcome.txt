@@ -71,7 +71,7 @@ do:
 
   00 ~> dsk 01
   01 ~> dir
-  06# hello
+  hello
   01 ~> hello
   Hello, world!
 
@@ -133,11 +133,5 @@ If you tried to read this file using the txt command, try using the
 pager program so you can read from the top. You can use it like this:
 
   00 ~> pager welcome.txt
-  Terminal lines (in two-digit hex!)? xx
-
-If your unsure how many lines your terminal has, run this command in
-your normal shell:
-
-  printf '%02x\n' "$(tput lines)"
 
 Good luck!
