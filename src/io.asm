@@ -248,6 +248,17 @@ hex_word_in:
   ld   l,a
   ret
 
+; copy the null-terminated string in hl to de
+; clobbers: a,de,hl
+strcpy:
+  ld   a,(hl)
+  ld   (de),a
+  cp   0
+  ret  z
+  inc  hl
+  inc  de
+  jr   strcpy
+
 ; print the null-terminated string (hl)
 ; clobbers: a,hl
 print:
