@@ -9,18 +9,11 @@ start:
   ld   hl,file
   call fload
 
-  ; we will autodetect this at some pointer, but that's surprisingly
-  ; hard to do
-  ld   hl,height_prompt
-  call print
-  call buffer_l
-  call hex_in
-  dec  a ; don't include the status line
-  ld   (term_height),a
-
   ; goes into the alternate screen buffer and hides the terminal
   ld   hl,init_term
   call print
+
+  call add_newlines
 
 .draw_page:
   call draw_page
@@ -57,7 +50,7 @@ start:
 
 ; just calls draw_line <terminal_height-1> times
 draw_page:
-  ld   a,(term_height)
+  ld   a,page_height
   ld   b,a
   ld   hl,(head)
 .loop:
@@ -80,8 +73,16 @@ draw_line:
   jr   nz,.loop
   ret
 
-term_height:
-  .reserve 1
+add_newlines:
+  ld b,0
+  ld   a,'\n'
+.loop:
+  out  (SERIAL),a
+  djnz .loop
+  ret
+
+page_height = 10
+
 ; the next character to start printing from
 head:
   .word file
