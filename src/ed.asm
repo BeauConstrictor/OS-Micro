@@ -9,6 +9,16 @@ start:
   ld   hl,init_term
   call print
 
+  ld   hl,(parse)
+  ld   de,filename
+  call strcpy
+
+  ld   hl,controls
+  ld   de,status
+  call strcpy
+
+  call load_buffer
+
   ; this way we can draw the cursor at the eof
   ld   a,'\n'
   ld   (bufend),a
@@ -177,6 +187,75 @@ cursor_r:
   ld   (gapstart),hl
   ret
 
+quit:
+  ld   hl,norm_term
+  call print
+  ld   hl,(exit_vec)
+  jp   (hl)
+
+load_buffer:
+  ld   hl,filename
+  call ffind
+  ld   hl,bufstart
+  call fload
+  dec  hl
+.loop:
+  ; put all the useless null bytes at the end of the file into the
+  ; gap
+  ld   a,(hl)
+  cp   0
+  jr   nz,.done
+  dec  hl
+  jr   .loop
+.done:
+  inc  hl ; start gap *after* the last non-null character
+  ld   (gapstart),hl
+  ret
+
+; fucks up the buffer so we force you to quit after writing
+; TODO: optimise
+write_quit:
+  ld   hl,norm_term ; we reset terminal right at the start, in case
+  call print        ; ffind panics
+
+  ; to get a contiguous text buffer, we move the cursor all the way
+  ; to the right
+.loop:
+  call cursor_r
+  ld   a,(aftergap+1)
+  ; check if there is still space to move right
+  cp   >bufend
+  jr   nz,.loop
+  ld   a,(aftergap)
+  cp   <bufend
+  jr   nz,.loop
+  ; write a null-terminator
+  ld   hl,(gapstart)
+  ; make sure the file ends in a newline
+  ; we have a single newline character before the buffer start
+  ; so that empty buffers are detected as 'ending in a newline' so
+  ; one isn't added
+  dec  hl
+  ld   a,(hl)
+  cp   '\n'
+  jr   z,.already_ends_in_nl
+  inc  hl
+  ld   (hl),'\n'
+  inc  hl
+.already_ends_in_nl:
+  ld   (hl),'\0'
+  ld   hl,filename
+  call ffind
+  call fdel
+  call fnew
+  push af
+  ld   hl,filename
+  call frename
+  pop  af
+  ld   hl,bufstart
+  call fwrite
+  jp   quit
+
 handle_key:
   ld   b,a
   ld   a,(mode)
@@ -192,8 +271,9 @@ handle_insert_key:
   jr   nz,.not_esc
   ld   a,NORMAL
   ld   (mode),a
-  ld   a,'\0'
-  ld   (status),a
+  ld   hl,controls
+  ld   de,status
+  call strcpy
   ret
 .not_esc:
   cp   '\b'
@@ -228,13 +308,13 @@ handle_normal_key:
   cp   'l'
   jp   z,cursor_r
 .not_l:
-  cp   'q'
-  jr   nz,.not_q
-  ld   hl,norm_term
-  call print
-  ld   hl,(exit_vec)
-  jp   (hl)
-.not_q:
+  cp   'w'
+  jp   z,write_quit
+.not_w:
+  cp   '!' ; discard changes
+  jr   nz,.not_ex
+  jp   quit
+.not_ex:
   cp   '_'
   jr   nz,.not__
   ld   hl,statusline_prompt
@@ -261,13 +341,20 @@ norm_term:
   .asciiz "\e[?25h"
 
 insert_mode_msg:
-  .asciiz "-- INSERT --"
+  .asciiz "\e[33m-- INSERT --\e[0m"
 
 statusline_prompt:
   .asciiz "\e[2K\r\e[90mTerminal height (2-digit hex)? \e[0m\e[?25h"
 
 eof_line:
   .asciiz "\n\e[90m~\e[0m"
+
+controls:
+  .byte   "\e[7mW\e[0m Save & quit\e[90m"
+  .byte   ",\e[0m "
+  .byte   "\e[7m_\e[0m Set terminal height"
+  .byte   ",\e[0m "
+  .asciiz "\e[7m!\e[0m Quit without saving"
 
 reverse_video:
   .asciiz "\e[7m"
@@ -287,12 +374,16 @@ aftergap:
   .word bufend
 mode:
   .word NORMAL
+filename:
+  .reserve 15
 
 status:
-  .ascii "To set terminal height, press _ and enter a new height in 2-digit hex."
-  .reserve 256-14
+  .reserve 256
 
   .include "io.asm"
+  .include "fs.asm"
 
 bufend = bufstart + 32*1024 ; first char after the buffer
+
+  .byte '\n' ; see the write_quit routine for an explanation
 bufstart:

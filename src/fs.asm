@@ -69,7 +69,7 @@ ffind:
   jp   panic
 
 ; load the file starting at the sector in the a register into memory,
-; starting at hl
+; starting at hl. returns the byte after the end of the file in hl.
 ; clobbers: a,de,hl
 fload:
   ld   (DEV_SECTOR),a
