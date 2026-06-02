@@ -8,7 +8,6 @@ Commands:
 [32mtxt [33m[file]        [90m- [0mShow the contents of a text file
 [32mdir       [90m        - [0mShow all files on disk and their ids
 [32mbye       [90m        - [0mShutdown the machine
-[32mwrt [33m[file] [33m"text" [90m- [0mSave some text into a blank file
 [32msys       [90m        - [0mEnter the system firmware
 [32mcls       [90m        - [0mClear the screen
 [32mfmt [33m[disk]        [90m- [0mFormat a device with FS/128

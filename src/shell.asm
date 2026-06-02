@@ -255,35 +255,6 @@ cmd_ren:
   call frename
   ret
 
-; set the contents of an empty text file
-cmd_wrt:
-  call expect_arg
-  call splitarg
-  push hl
-  ld   hl,(parse)
-  call ffind
-  ld   b,a
-  pop  hl
-  push hl
-  ; add a newline to the end of the string
-.findterminator:
-  ld   a,(hl)
-  cp   '\0'
-  jr   z,.found
-  inc  hl
-  jr   .findterminator
-.found:
-  ld   a,'\n'
-  ld   (hl),a
-  inc  hl
-  ld   a,'\0'
-  ld   (hl),a
-  ; go back to start
-  pop  hl
-  ld   a,b
-  call fwrite
-  ret
-
 ; list installed devices
 cmd_dev:
   ld   a,0
@@ -399,8 +370,6 @@ cmd_table:
   .word  cmd_new
   .byte  "ren"
   .word  cmd_ren
-  .byte  "wrt"
-  .word  cmd_wrt
   .byte  "dev"
   .word  cmd_dev
   .byte  "usg"
