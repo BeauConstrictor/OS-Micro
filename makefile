@@ -26,7 +26,7 @@ build/disk: build/kernel.out | build
 	$(ASM) $(ASMFLAGS) -o build/disk/hexmon src/hexmon.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/pager src/pager.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/xo src/xo.asm
-	$(ASM) $(ASMFLAGS) -o build/disk/ed src/ed.asm
+	$(ASM) $(ASMFLAGS) -o build/disk/edit src/edit.asm
 
 .PHONY: build/osm.bin
 build/osm.bin: build/bootloader.out build/disk | build
