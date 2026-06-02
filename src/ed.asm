@@ -6,18 +6,17 @@ start:
   pop  hl
   ld   (exit_vec),hl
 
-  ld   hl,init_term
-  call print
-
   ld   hl,(parse)
   ld   de,filename
   call strcpy
+  call load_buffer
+
+  ld   hl,init_term
+  call print
 
   ld   hl,controls
   ld   de,status
   call strcpy
-
-  call load_buffer
 
   ; this way we can draw the cursor at the eof
   ld   a,'\n'
@@ -35,7 +34,7 @@ start:
 draw_buffer:
   ld   hl,clearscr
   call print
-  ld   b,0 # lines
+  ld   bc,0 # lines
 
   ld   hl,bufstart
 .before:
@@ -51,7 +50,7 @@ draw_buffer:
   ; increment the lines counter (bc)
   cp   '\n'
   jr   nz,.before_not_nl
-  inc  b
+  inc  bc
 .before_not_nl:
   out  (SERIAL),a
   ; move to next character
@@ -90,7 +89,7 @@ draw_buffer:
   ; increment the lines counter (bc)
   cp   '\n'
   jr   nz,.after_not_nl
-  inc  b
+  inc  bc
 .after_not_nl:
   out  (SERIAL),a
   ; move to next character
@@ -102,9 +101,12 @@ draw_buffer:
 .tilde_loop:
   ld   hl,eof_line
   call print
-  inc  b
-  ld   a,(term_height)
+  inc  bc
+  ld   a,(term_height+1)
   cp   b
+  jr   nz,.tilde_loop
+  ld   a,(term_height)
+  cp   c
   jr   nz,.tilde_loop
 
   ld   a,'\n'
@@ -241,8 +243,8 @@ write_quit:
   jr   z,.already_ends_in_nl
   inc  hl
   ld   (hl),'\n'
-  inc  hl
 .already_ends_in_nl:
+  inc  hl
   ld   (hl),'\0'
   ld   hl,filename
   call ffind
@@ -368,6 +370,7 @@ exit_vec:
   .reserve 2
 term_height:
   .byte 25
+  .byte 00
 gapstart:
   .word bufstart
 aftergap:
