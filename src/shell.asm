@@ -69,20 +69,29 @@ exec_cmd:
   pop  de
   ld   a,(hl)
   cp   0
-  jr   z,.notfound
+  jr   z,.notfound_internal
   jr   .check_match
-.notfound:
+.notfound_internal:
   ld   hl,linebuf
   ld   (parse),hl
   call splitarg
   push hl
   ld   hl,linebuf
-  call ffind
+  call ffind_noerr
   pop  hl
+  jr   c,.notfound_external
   ld   (parse),hl
   ld   hl,RUN_LOAD
   call fload
   jp   RUN_LOAD
+.notfound_external:
+  ld   hl,linebuf
+  call print
+  ld   a,'?'
+  out  (SERIAL),a
+  ld   a,'\n'
+  out  (SERIAL),a
+  ret
 
 ; list files and their first sectors
 cmd_dir:

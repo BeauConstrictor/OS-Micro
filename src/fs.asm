@@ -10,7 +10,9 @@
 FS_ASM = 1
 
 ; return in a the fid of the null-terminated filename in hl
-ffind:
+; return nc if file found, or c if not
+; clobbers: a,b,c,de,hl
+ffind_noerr:
   ld   d,h
   ld   e,l
   ld   a,$02
@@ -42,6 +44,7 @@ ffind:
   ; go to sector byte
   add  hl,de
   ld   a,(hl)
+  or   a
   ret
 .noteq:
   ; subtract however many chars we matched from hl and de to go back
@@ -64,6 +67,15 @@ ffind:
   jr   z,.notfound
   jr   .chentry
 .notfound:
+  scf
+  ret
+
+; return in a the fid of the null-terminated filename in hl
+; return nc if file found, or c if not
+; clobbers: a,b,c,de,hi
+ffind:
+  call ffind_noerr
+  ret  nc
   ld   hl,file_not_found
   call print
   jp   panic
