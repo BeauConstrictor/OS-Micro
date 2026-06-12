@@ -248,7 +248,8 @@ hex_word_in:
   ld   l,a
   ret
 
-; copy the null-terminated string in hl to de
+; copy the null-terminated string in hl to de. returns the address of
+; the null-byte in both strings.
 ; clobbers: a,de,hl
 strcpy:
   ld   a,(hl)
