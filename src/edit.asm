@@ -32,7 +32,7 @@ start:
   jr   .loop
 
 draw_buffer:
-  ld   hl,clearscr
+  ld   hl,begin_draw
   call print
   ld   bc,0 # lines
 
@@ -51,8 +51,11 @@ draw_buffer:
   cp   '\n'
   jr   nz,.before_not_nl
   inc  bc
+  call next_line
+  jr   .before_drawn
 .before_not_nl:
   out  (SERIAL),a
+.before_drawn:
   ; move to next character
   inc  hl
   jr   .before
@@ -90,8 +93,11 @@ draw_buffer:
   cp   '\n'
   jr   nz,.after_not_nl
   inc  bc
+  call next_line
+  jr   .after_drawn
 .after_not_nl:
   out  (SERIAL),a
+.after_drawn:
   ; move to next character
   inc  hl
   jr   .after
@@ -111,7 +117,8 @@ draw_buffer:
 
   ld   a,'\n'
   out  (SERIAL),a
-  out  (SERIAL),a
+  ld   hl,clear_line
+  call print
   ld   hl,status
   call print
 
@@ -269,7 +276,7 @@ handle_key:
 
 handle_insert_key:
   ld   a,b
-  cp   '\033'
+  cp   '\e'
   jr   nz,.not_esc
   ld   a,NORMAL
   ld   (mode),a
@@ -326,12 +333,20 @@ handle_normal_key:
   ld   (term_height),a
   ld   hl,hide_cursor
   call print
+  ld   hl,clear_scr
+  call print
   ret
 .not__:
   ret
 
-clearscr:
-  .asciiz "\033[2J\033[H"
+next_line:
+  push af
+  push hl
+  ld   hl,clear_line
+  call print
+  pop  hl
+  pop  af
+  ret
 
 init_term:
   .byte   "\e[?1049h"
@@ -349,7 +364,7 @@ statusline_prompt:
   .asciiz "\e[2K\r\e[90mTerminal height (2-digit hex)? \e[0m\e[?25h"
 
 eof_line:
-  .asciiz "\n\e[90m~\e[0m"
+  .asciiz "\n\e[2K\e[90m~\e[0m"
 
 controls:
   .byte   "\e[7mW\e[0m Save & quit\e[90m"
@@ -362,6 +377,12 @@ reverse_video:
   .asciiz "\e[7m"
 ansi_reset:
   .asciiz "\e[0m"
+begin_draw:
+  .asciiz "\e[H\e[2K"
+clear_scr:
+  .asciiz "\e[2J\e[H"
+clear_line:
+  .asciiz "\n\e[2K"
 
 NORMAL = 0
 INSERT = 1
