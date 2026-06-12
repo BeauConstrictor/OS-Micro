@@ -17,6 +17,8 @@ buffer_l:
   jr   z,.backspace
   cp   '\b'
   jr   z,.backspace
+  cp   'D' & 0x1f ; ctrl+d
+  jr   z,.interrupt
   ; write the char to the end of the buffer
   ld   (hl),a
   ; move to the next spot in the buffer
@@ -54,6 +56,11 @@ buffer_l:
   ld   hl,linebuf
   ld   (parse),hl
   ret
+.interrupt:
+  ld   hl,interrupt
+  call print
+  ld   sp,STACK_START
+  jp   KERNEL
 
 ; replace the first space after (parse) with a \0, and return a
 ; pointer to the next char after that space in hl
@@ -269,6 +276,9 @@ print:
   out  (SERIAL),a
   inc  hl
   jr   print
+
+interrupt:
+  .asciiz "\e[31m <interrupt> \e[0m\n"
 
 parse   = $0000
 linebuf = $0002 ; overwrites the bootloader
