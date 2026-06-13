@@ -164,6 +164,47 @@ expect_arg:
   call print
   jp   shell
 
+; print the sector count in a as a number of kilobytes (with decimal
+; point!)
+; clobbers: a,c
+print_ks:
+  ld   c,a
+  ; get the 'decimal point' of sectors used (0-3)
+  and  %00000011
+  push af
+  ld   a,c
+  ; divide by 4 to convert from units 256b sectors to units of 1024b
+  or a ; (clear carry)
+  rra
+  or a ; (clear carry)
+  rra
+  call num_out
+  pop  af
+  ; no, we print the number of quarters of a kb
+  cp   0
+  ret  z
+  ld   a,'.'
+  out  (SERIAL),a
+  cp   1
+  jr   z,.one_quarter
+  cp   2
+  jr   z,.one_half
+  ; otherwise, must be 3 quarters
+  ld   a,'7'
+  jr   .write_5
+  ret
+.one_quarter:
+  ld   a,'2'
+  jr   .write_5
+.one_half:
+  ; if you print null, nothing happens so we just print that
+  ld   a,'5'
+.write_5:
+  out  (SERIAL),a
+  ld   a,'5'
+  out  (SERIAL),a
+  ret
+
 ; shutdown the machine
 cmd_bye:
   call fflush ; save any chan
@@ -297,43 +338,9 @@ cmd_dev:
 ; show how much disk space is used
 cmd_usg:
   call disk_usg
-  ld   c,a
-  ; get the 'decimal point' of sectors used (0-3)
-  and  %00000011
-  push af
-  ld   a,c
-  ; divide by 4 to convert from units 256b sectors to units of 1024b
-  or a ; (clear carry)
-  rra
-  or a ; (clear carry)
-  rra
-  call num_out
-  pop  af
-  call .get_quarter
-  out  (SERIAL),a
-  ; technically, .25, .5 and .75 all end in 5, so we only print the
-  ; first digit (or nothing for .5) in .quarter_out
+  call print_ks
   ld   hl,usg_after
-  call print
-  ret
-.get_quarter:
-  cp   0
-  ret  z
-  ld   a,'.'
-  out  (SERIAL),a
-  cp   1
-  jr   z,.one_quarter
-  cp   2
-  jr   z,.one_half
-  ; otherwise, must be 3 quarters
-  ld   a,'7'
-  ret
-.one_quarter:
-  ld   a,'2'
-.one_half:
-  ; if you print null, nothing happens so we just print that
-  ld   a,'\0'
-  ret
+  jp   print
 
 ; show how large a file is
 cmd_siz:
@@ -341,10 +348,8 @@ cmd_siz:
   ld   hl,(parse)
   call ffind
   call fsize
-  ld   h,a
-  ld   l,0
-  call num_word_out
-  ld   a,'B'
+  call print_ks
+  ld   a,'K'
   out  (SERIAL),a
   ld   a,'\n'
   out  (SERIAL),a
@@ -422,7 +427,7 @@ devlist_after:
 ansi_reset:
   .asciiz "\e[0m"
 usg_after:
-  .asciiz "5K / 64K\n"
+  .asciiz "K / 64K\n"
 
   .endif ; SHELL_ASM
 
