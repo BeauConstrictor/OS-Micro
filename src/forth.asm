@@ -55,19 +55,42 @@ interpret_word:
   call skip_and_check_whitespace
   ld   hl,(parse)
   call find_name
-  jr   c,.might_be_a_literal
+  jr   c,.not_a_normal_word
   jp   (hl)
   ; the word will return for us
-.might_be_a_literal:
+.not_a_normal_word:
   ; only hex literals are supported for now
   call get_char
   cp   '$'
-  jr   nz,.undefined
+  jr   nz,.not_hex_literal
   call hex_word_in
   call dpush_hl
   ret
-.undefined:
+.not_hex_literal:
+  cp   ':'
+  jr   nz,.not_definition
+  ld   hl,(parse)
+  ld   a,(hl)
+  cp   ' '
+  jr   nz,.not_definition
+  inc  hl
+  ld   (parse),hl
+  call splitarg ; not really for this, but will place a null after the
+                ; word name
+  ld   hl,(parse)
+  ld   de,(code_block_top)
+  call add_name
+  ret
+.not_definition:
   call unget_char
+  call is_num
+  jr   c,.not_num_literal
+  ; TODO: use num_word_in
+  call num_word_in
+  call dpush_hl
+  ret
+.not_num_literal:
+.undefined:
   ld   hl,undefined_start
   call print
   ld   hl,(parse)
@@ -183,7 +206,8 @@ add_name:
   inc  hl
   ld   (hl),d
   inc  hl
-  ld   (hl),'\0'
+  ; sentinel value
+  ld   (hl),$01
   ld   (name_table_top),hl
   ret
 
@@ -337,7 +361,7 @@ word_rot:
   call dpush_hl
   ret
 
-word_bye:
+word_exit:
   ld   hl,(exit_vec)
   jp   (hl)
 
@@ -360,7 +384,7 @@ word_words:
   jr   .outer
 
 greeting:
-  .asciiz "\e[90mType 'bye' to exit\e[0m\n"
+  .asciiz "\e[90mType 'exit' to exit\e[0m\n"
 reset:
   .asciiz "\e[0m"
 ok_msg:
@@ -380,7 +404,7 @@ undefined_end:
 ; 10 fib-nums
 
 name_table_top:
-  .word name_table
+  .word _name_table_top
 exit_stack_top:
   .word exit_stack
 data_stack_top:
@@ -419,8 +443,9 @@ name_table:
   .word word_over
   .asciiz "rot"
   .word word_rot
-  .asciiz "bye"
-  .word word_bye
+  .asciiz "exit"
+  .word word_exit
   .asciiz "words"
   .word word_words
+_name_table_top:
   .byte $01
