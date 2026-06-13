@@ -1,5 +1,5 @@
 ASM := vasmz80_oldstyle
-ASMFLAGS := -dotdir -Fbin -esc
+ASMFLAGS := -dotdir -Fbin -esc -Isrc/lib
 
 FS128_TOOL := python3 src/fs128-tool.py
 

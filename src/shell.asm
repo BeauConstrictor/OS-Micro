@@ -197,7 +197,6 @@ print_ks:
   ld   a,'2'
   jr   .write_5
 .one_half:
-  ; if you print null, nothing happens so we just print that
   ld   a,'5'
 .write_5:
   out  (SERIAL),a
