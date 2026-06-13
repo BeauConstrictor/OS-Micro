@@ -14,5 +14,5 @@ Commands:
 [32mnew [33m"name"        [90m- [0mCreate a new file with a specified name
 [32mren [33m[file] [33m"name" [90m- [0mChange the name of a file
 [32mdev       [90m        - [0mList installed devices
-[32musg       [90m        - [0mList how much disk space is in use
+[32musg       [90m        - [0mCheck how much of the disk is in use
 [32msiz [33m[file]        [90m- [0mCheck the size of a file
