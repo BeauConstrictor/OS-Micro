@@ -334,6 +334,22 @@ word_sub:
   call dpush_hl
   ret
 
+word_mult:
+  call dpop_de
+  call dpop_bc
+  ld   hl,0
+.loop:
+  add  hl,de
+  dec  bc
+  ld   a,b
+  cp   0
+  jr   nz,.loop
+  ld   a,c
+  cp   0
+  jr   nz,.loop
+  call dpush_hl
+  ret
+
 word_dup:
   call dpop_hl
   call dpush_hl
@@ -427,6 +443,8 @@ name_table:
   .word word_add
   .asciiz "-"
   .word word_sub
+  .asciiz "*"
+  .word word_mult
   .asciiz "."
   .word word_number
   .asciiz ".$"
