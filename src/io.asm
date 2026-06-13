@@ -32,7 +32,8 @@ buffer_l:
   ld   de,linebuf
   ; check if we're already at it
   push hl
-  xor  a
+  ; clear carry
+  or  a
   sbc  hl,de
   ; if so, ignore backspace
   pop  hl
@@ -64,7 +65,7 @@ buffer_l:
 
 ; replace the first space after (parse) with a \0, and return a
 ; pointer to the next char after that space in hl
-; clobbers: TODO
+; clobbers: a,hl
 splitarg:
   ld   hl,(parse)
 .loop:
@@ -76,6 +77,26 @@ splitarg:
 .found:
   ld   (hl),'\0'
   inc  hl
+  ret
+
+
+; read a single char from the input buffer and advance to the next
+; char (returns in a)
+; clobbers: a,hl
+get_char_any:
+  ld   hl,(parse)
+  ld   a,(hl)
+  inc  hl
+  ld   (parse),hl
+  ret
+
+; undo previous call to get_char_any
+; clobbers: a,hl
+unget_char_any:
+  ld   hl,(parse)
+  dec  hl
+  ld   a,(hl)
+  ld   (parse),hl
   ret
 
 ; read a single char from the input buffer and advance to the next
@@ -253,6 +274,83 @@ hex_word_in:
   call hex_in
   ld   h,e
   ld   l,a
+  ret
+
+; check if all characters until whitespace or \0.
+; returns nc if so or c if not.
+; clobbers: a,hl
+is_num:
+  ld   hl,(parse)
+.loop:
+  ld   a,(hl)
+  cp   ' '
+  jr   z,.done
+  cp   '\0'
+  jr   z,.done
+  cp   '0'
+  jr   c,.not_digit
+  cp   '9'+1
+  jr   nc,.not_digit
+  inc  hl
+  jr   .loop
+.not_digit:
+  scf
+  ret
+.done:
+  ; clear carry
+  or  a
+  ret
+
+; parse a single number and return in hl, until first non-digit char
+; (or end of input).
+; clobbers: TODO
+num_word_in:
+  ld   hl,0
+.loop:
+  push hl
+  call get_char_any
+  pop  hl
+  ; if char is not a digit, we are done
+  ; < '0'
+  cp   '0'
+  jr   c,.done
+  ; > '9'
+  cp   '9'+1
+  jr   nc,.done
+  ; shift existing digits over one place value
+  push af
+  call .mult_10
+  pop  af
+  ; add in the new digit
+  sub  '0'
+  ld   d,0
+  ld   e,a
+  add  hl,de
+  jr   .loop
+.done:
+  ; we want to leave the last char after the number un-parsed.
+  push hl
+  call unget_char_any
+  pop  hl
+  ret
+; multiply hl by 10
+.mult_10:
+  ld   d,h
+  ld   e,l
+  ld   hl,0
+  ld   b,10
+.mult_loop:
+  add  hl,de
+  djnz .mult_loop
+  ret
+
+; parse a single number and return in a, until first non-digit char
+; (or end of input).
+; clobbers: TODO
+num_in:
+  call num_word_in
+  ld   h,0
+  ld   a,l
   ret
 
 ; copy the null-terminated string in hl to de. returns the address of
