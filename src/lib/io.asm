@@ -1,3 +1,8 @@
+; io.asm - The OS/M I/O library
+;
+; This library implements various routines for handling input and
+; output, as well as parsing input in various ways.
+
   .ifndef IO_ASM
 IO_ASM = 1
 

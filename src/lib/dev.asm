@@ -1,8 +1,13 @@
+; dev.asm - The OS/M device library
+;
+; This library implements various generic routines for working with
+; the Ozpex Micro's block devices.
+
   .ifndef DEV_ASM
 DEV_ASM = 1
 
-; return in hl a pointer to a string with the name of the device type
-; given in a
+; return in hl a pointer to a string with the name of the current
+; device's type
 ; clobbers: TODO
 get_devtype:
   ld   a,(DEV_STATUS)
