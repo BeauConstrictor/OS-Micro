@@ -53,8 +53,7 @@ start:
 
 ; just calls draw_line <terminal_height-1> times
 draw_page:
-  ld   a,page_height
-  ld   b,a
+  ld   b,page_height
   ld   hl,(head)
 .loop:
   call draw_line
@@ -73,8 +72,8 @@ draw_line:
   inc  hl
   out  (SERIAL),a
   cp   '\n'
-  jr   nz,.loop
-  ret
+  ret  z
+  jr   .loop
 
 add_newlines:
   ld b,0
