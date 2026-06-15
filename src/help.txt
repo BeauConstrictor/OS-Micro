@@ -6,7 +6,7 @@ Commands:
 [32mhlp       [90m        - [0mShow this help
 [32mdsk [33m[disk]        [90m- [0mChange disk
 [32mtxt [33m[file]        [90m- [0mShow the contents of a text file
-[32mdir       [90m        - [0mShow all files on disk and their ids
+[32mdir       [90m        - [0mList files in the directory
 [32mbye       [90m        - [0mShutdown the machine
 [32msys       [90m        - [0mEnter the system firmware
 [32mcls       [90m        - [0mClear the screen
