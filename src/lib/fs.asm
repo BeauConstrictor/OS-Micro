@@ -478,7 +478,6 @@ fdel:
 panic:
   ld   sp,STACK_START
   jp   KERNEL
-  ret
 
 disk_full:
   .asciiz "\e[31mThe disk is full.\n\e[0m"

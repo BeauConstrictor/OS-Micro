@@ -180,11 +180,13 @@ print_ks:
   rra
   call num_out
   pop  af
-  ; no, we print the number of quarters of a kb
+  ld   c,a
+  ; now, we print the number of quarters of a kb
   cp   0
   ret  z
   ld   a,'.'
   out  (SERIAL),a
+  ld   a,c
   cp   1
   jr   z,.one_quarter
   cp   2
@@ -196,10 +198,9 @@ print_ks:
 .one_quarter:
   ld   a,'2'
   jr   .write_5
-.one_half:
-  ld   a,'5'
 .write_5:
   out  (SERIAL),a
+.one_half:
   ld   a,'5'
   out  (SERIAL),a
   ret
