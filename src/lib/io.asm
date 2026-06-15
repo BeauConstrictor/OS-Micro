@@ -2,6 +2,10 @@
 ;
 ; This library implements various routines for handling input and
 ; output, as well as parsing input in various ways.
+;
+; If you need to use the various subroutines that for parsing numbers
+; and hex values on strings not in the input buffer, you can set the
+; value of (parse) to the address of your string before the call.
 
   .ifndef IO_ASM
 IO_ASM = 1
@@ -308,7 +312,7 @@ is_num:
 
 ; parse a single number and return in hl, until first non-digit char
 ; (or end of input).
-; clobbers: TODO
+; clobbers: a,b,de,hl
 num_word_in:
   ld   hl,0
 .loop:
@@ -351,7 +355,7 @@ num_word_in:
 
 ; parse a single number and return in a, until first non-digit char
 ; (or end of input).
-; clobbers: TODO
+; clobbers: a,b,de,hl
 num_in:
   call num_word_in
   ld   h,0
@@ -369,6 +373,26 @@ strcpy:
   inc  hl
   inc  de
   jr   strcpy
+
+; return nc if the strings in he and de are equal (c otherwise).
+; returns the address of the first mismatch in hl and de. if equal,
+; returns the address of the null terminator.
+; clobbers: a,b,de,hl
+strcmp:
+  ld  a,(de)
+  ld  b,a
+  ld  a,(hl)
+  cp  '\0'
+  jr  z,.match
+  cp  b
+  inc hl
+  inc de
+  jr  z,strcmp
+  scf
+  ret
+.match:
+  or  a ; clear carry
+  ret
 
 ; print the null-terminated string (hl)
 ; clobbers: a,hl

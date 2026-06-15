@@ -24,7 +24,7 @@ build/disk: build/kernel.out | build
 	cp build/kernel.out build/disk/_k
 	cp welcome.txt build/disk/
 	$(ASM) $(ASMFLAGS) -o build/disk/hexmon src/hexmon.asm
-	$(ASM) $(ASMFLAGS) -o build/disk/forth src/forth.asm
+	$(ASM) $(ASMFLAGS) -Lni -L build/sym.txt -o build/disk/forth src/forth.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/pager src/pager.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/xo src/xo.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/edit src/edit.asm

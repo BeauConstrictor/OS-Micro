@@ -5,7 +5,6 @@
 start:
   pop  hl
   ld   (exit_vec),hl
-
   ld   hl,greeting
   call print
 repl:
@@ -61,6 +60,8 @@ interpret_word:
 .not_a_normal_word:
   ; only hex literals are supported for now
   call get_char
+  cp   '\0'
+  ret  z
   cp   '$'
   jr   nz,.not_hex_literal
   call hex_word_in
@@ -68,29 +69,28 @@ interpret_word:
   ret
 .not_hex_literal:
   cp   ':'
-  jr   nz,.not_definition
-  ld   hl,(parse)
-  ld   a,(hl)
+  jr   nz,.not_definition_no_colon
+  call get_char_any
   cp   ' '
-  jr   nz,.not_definition
-  inc  hl
-  ld   (parse),hl
-  call splitarg ; not really for this, but will place a null after the
-                ; word name
+  jr   nz,.not_definition_no_space
+  call splitarg ; place a \0 after the word's name
   ld   hl,(parse)
   ld   de,(code_block_top)
   call add_name
-  ret
-.not_definition:
+  call skip_until_whitespace
+  jp   compile_words
+.not_definition_no_space:
+  call unget_char_any
+.not_definition_no_colon:
   call unget_char
   call is_num
   jr   c,.not_num_literal
-  ; TODO: use num_word_in
   call num_word_in
   call dpush_hl
   ret
 .not_num_literal:
-.undefined:
+  ; if it is not a defined word, or any of the special cases, we just
+  ; error out
   ld   hl,undefined_start
   call print
   ld   hl,(parse)
@@ -98,6 +98,106 @@ interpret_word:
   ld   hl,undefined_end
   call print
   jp   repl
+
+compile_words:
+  call get_char
+  cp   ';'
+  jr   z,.done
+  call unget_char
+  call compile_word
+  call skip_until_whitespace
+  jr   compile_words
+.done:
+  ld   a,INST_RET
+  call write_byte
+  ret
+
+compile_word:
+  call skip_and_check_whitespace
+  ld   hl,(parse)
+  call find_name
+  jr   c,.not_a_normal_word
+  push hl
+  ld   a,INST_CALL_NN
+  call write_byte
+  pop  hl
+  call write_word
+  ret
+.not_a_normal_word:
+  call get_char
+  cp   '$'
+  jr   nz,.not_hex_literal
+  ld   a,INST_LD_DE_NN
+  call write_byte
+  call hex_word_in
+  call write_word
+  ld   a,INST_CALL_NN
+  call write_byte
+  ld   hl,dpush_de
+  call write_word
+  ret
+.not_hex_literal:
+  cp   '('
+  jr   nz,.not_comment
+.in_comment:
+  call get_char
+  cp   ')'
+  jr   nz,.in_comment
+  ret
+.not_comment:
+  cp   '"'
+  jr   nz,.not_string_literal
+  ; write: ld de,string_start
+  ld   a,INST_LD_DE_NN
+  call write_byte
+  ld   hl,(code_block_top)
+  ld   de,8
+  add  hl,de
+  call write_word
+  ; write: call dpush_de
+  ld   a,INST_CALL_NN
+  call write_byte
+  ld   hl,dpush_de
+  call write_word
+  ; write: jp after_string
+  ld   a,INST_JP_NN
+  call write_byte
+  call write_word_later
+.in_string:
+  call get_char_any
+  cp   '"'
+  jr   z,.finished_string
+  call write_byte
+  jr   .in_string
+.finished_string:
+  ld   a,'\0' ; null-terminator
+  call write_byte
+  ld   hl,(code_block_top)
+  call write_word_now
+  ret
+.not_string_literal:
+  call unget_char
+  call is_num
+  jr   c,.not_num_literal
+  ld   a,INST_LD_DE_NN
+  call write_byte
+  call num_word_in
+  call write_word
+  ld   a,INST_CALL_NN
+  call write_byte
+  ld   hl,dpush_de
+  call write_word
+  ret
+.not_num_literal:
+  ld   hl,(parse)
+  ld   de,word_if_name
+  call strcmp
+  jp   nc,comp_word_if
+.not_if_word:
+  call print_word
+  ld   a,'?'
+  out  (SERIAL),a
+  jp repl
 
 ; skip all whitespace starting at (parse). returns c if there is no
 ; whitespace left (or nc otherwise).
@@ -137,11 +237,13 @@ skip_until_whitespace:
   or  a
   ret
 .null:
+  ld   (parse),hl
   scf
   ret
 
 ; return in hl the address of the string in hl in the name table
 ; returns c if word not found, or nc if found
+; TODO: iterate in reverse order, so words can be 'overwritten'
 find_name:
   ld   d,h
   ld   e,l
@@ -154,10 +256,8 @@ find_name:
   ld   a,(hl)
   inc  hl
   inc  de
-  cp   '\0'
-  jr   z,.match
   cp   b
-  jr   z,.check
+  jr   z,.might_match
   ; go back to start of search string
   pop  de
   push de
@@ -178,6 +278,9 @@ find_name:
   pop  de
   scf
   ret
+.might_match:
+  cp   '\0'
+  jr   nz,.check
 .match:
   ld   a,(hl)
   ld   e,a
@@ -199,6 +302,8 @@ add_name:
   push de
   ld   de,(name_table_top)
   call strcpy
+  ld   h,d
+  ld   l,e
   pop  de
   ; we are at the null-byte; move past
   inc  hl
@@ -209,17 +314,6 @@ add_name:
   ; sentinel value
   ld   (hl),$01
   ld   (name_table_top),hl
-  ret
-
-; return in hl a pointer to a new block of code allocated, of size
-; de
-; clobbers; de,hl
-alloc_code:
-  ld   hl,(code_block_top)
-  push hl
-  add  hl,de
-  ld   (code_block_top),hl
-  pop  hl
   ret
 
 ; prints a null/whitespace-terminated string
@@ -299,7 +393,93 @@ dpush_bc:
   pop  de
   ret
 
+; write the single byte in a to the code block
+; clobbers: a,hl
+write_byte:
+  ld   hl,(code_block_top)
+  ld   (hl),a
+  inc  hl
+  ld   (code_block_top),hl
+  ret
+
+; write the word in hl to the code block
+; clobbers: a,hl
+write_word:
+  push de
+  ld   d,h
+  ld   e,l
+  ld   hl,(code_block_top)
+  ld   (hl),e
+  inc  hl
+  ld   (hl),d
+  inc  hl
+  ld   (code_block_top),hl
+  pop  de
+  ret
+
+; write a garbage word to code block, and save its address for later
+; clobbers: de,hl
+write_word_later:
+  ; push address of word to exit stack for later
+  ld   hl,(exit_stack_top)
+  ld   de,(code_block_top)
+  ld   (hl),e
+  inc  hl
+  ld   (hl),d
+  inc  hl
+  ld   (exit_stack_top),hl
+  ; skip over those bytes in the code block
+  inc  de
+  inc  de
+  ld   (code_block_top),de
+  ret
+
+; write hl into the word from the last call to write_word_later
+; clobbers: bc,de,hl
+write_word_now:
+  ex   de,hl
+  ld   hl,(exit_stack_top)
+  dec  hl
+  ld   b,(hl)
+  dec  hl
+  ld   c,(hl)
+  ld   (exit_stack_top),hl
+  ld   h,b
+  ld   l,c
+  ld   (hl),e
+  inc  hl
+  ld   (hl),d
+  ret
+
+; compiletime words. these words are not available to the interpreter
+; and are executed immediately when compiled.
+
+comp_word_if:
+  ; or a (clear carry flag)
+  ld   a,INST_OR_A
+  call write_byte
+  ; ld de,0
+  ld   a,INST_LD_DE_NN
+  call write_byte
+  ; sbc hl,de
+  ld   a,PREFIX_MISC
+  call write_byte
+  ld   a,INST_SBC_HL_DE
+  call write_byte
+  ; jp z,_later_
+  ld   a,INST_JP_Z
+  call write_byte
+  ; when the 'this' compiletime word is used, this address is
+  ; is written with the (code_block_top).
+  call write_word_later
+  ret
+
+; runtime words. these words run immediately when interpreted and
+; compiled as call instructions.
+
 word_hex:
+  ld   a,'$'
+  out  (SERIAL),a
   call dpop_hl
   call hex_word_out
   ld   a,' '
@@ -399,6 +579,11 @@ word_words:
   out  (SERIAL),a
   jr   .outer
 
+word_puts:
+  call dpop_hl
+  call print
+  ret
+
 greeting:
   .asciiz "\e[90mType 'exit' to exit\e[0m\n"
 reset:
@@ -410,6 +595,11 @@ undefined_start:
 undefined_end:
   .asciiz "?\e[0m\n"
 
+word_if_name:
+  .asciiz "if"
+word_then_name:
+  .asciiz "then"
+
 ; future program to use (fibonacci numbers):
 ;
 ; : ? ( n -- n ) dup . ;
@@ -420,7 +610,7 @@ undefined_end:
 ; 10 fib-nums
 
 name_table_top:
-  .word _name_table_top
+  .word builtin_words_end
 exit_stack_top:
   .word exit_stack
 data_stack_top:
@@ -435,6 +625,7 @@ data_stack = memory + $1100 ; 256 b
 code_block = memory + $1200 ; rest of memory
 
   .include "io.asm"
+  .include "inst.asm"
 
 memory:
 
@@ -465,5 +656,7 @@ name_table:
   .word word_exit
   .asciiz "words"
   .word word_words
-_name_table_top:
+  .asciiz "puts"
+  .word word_puts
+builtin_words_end:
   .byte $01
