@@ -88,7 +88,6 @@ splitarg:
   inc  hl
   ret
 
-
 ; read a single char from the input buffer and advance to the next
 ; char (returns in a)
 ; clobbers: a,hl
@@ -285,7 +284,7 @@ hex_word_in:
   ld   l,a
   ret
 
-; check if all characters until whitespace or \0.
+; check if all characters until whitespace or \0 are digits.
 ; returns nc if so or c if not.
 ; clobbers: a,hl
 is_num:
