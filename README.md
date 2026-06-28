@@ -30,71 +30,21 @@ system like this (assuming you have `osm.bin` in your directory):
 ozm -m bdsk:osm.bin@0
 ```
 
-This distribution image also includes two programs: a hex monitor
-and a basic Xs & Os game (which uses vim keybinds for movement). The
-hex monitor uses quite an archaic syntax which is explained in the
-[source file](src/monitor.asm).
+This distribution image also includes a few small programs to help
+you get started, although the primary goal of OS/M is to use it as a
+development target.
 
-You can easily write your own programs for OS/M
-that statically link with the OS's libraries. Using
-[`vasm`](http://www.compilers.de/vasm.html), you can compile this
-hello world program:
-
-```asm
-  .include "mmap.asm"
-
-  .org RUN_LOAD
-
-start:
-  ld   hl,message
-  call print
-  ret
-
-message:
-  .asciiz "Hello, world!\n"
-
-  .include "io.asm"
-```
-
-...like this, as long as you have copied the needed libraries
-(`mmap.asm` and `io.asm`) from the the latest release into your
-directory:
+For a complete on interacting with the system and developing your own
+software for it, run this command:
 
 ```
-sh vasmz80_oldstyle -dotdir -Fbin -esc hello.asm -o hello
+00 ~> pager welcome.txt
 ```
-
-
-Then, you just have to create a disk image with your program on it.
-This repository includes a [utility](src/fs128-tool.py) just for
-that (you need Python to run the tool):
-
-```
-python3 fs128-tool.py hello -o mydisk.bin
-```
-
-Once you have a disk image, you just need to boot into OS/M and
-run your program!
-
-```
-$ ozm -m bdsk:osm.bin@0 -m disk:mydisk.bin@1
-00 ~> dsk 01
-01 ~> dir
-06# hello
-01 ~> hello
-Hello, world!
-01 ~>
-```
-
-That's all it takes to develop for OS/M! If you want to write more
-complex programs, it make help to take a look at the source of some
-of the OS libraries, as I am told they are quite readable - some
-familiarity with Z80 assembly with help of course.
 
 ## Shell
 
 OS/Micro's shell uses 3 letter commands, followed by any number of
-arguments. If you want to read a file, use the `txt` command. If you
+arguments. If you want to read a file, use the `prn 00` command. If you
 want to run a command, just type it's name.
 
 If you are curious how the filesystem works, read the FS/128

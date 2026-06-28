@@ -117,30 +117,6 @@ cmd_dir:
   djnz .loop
   ret
 
-; output the contents of a file as text
-cmd_txt:
-  call expect_arg
-  ld   hl,(parse)
-  call ffind
-.chsect:
-  ld   (DEV_SECTOR),a
-  call busy_wait
-  ld   b,$ff
-  ld   de,DEV_READ
-.loop:
-  ld   a,(de)
-  cp   0
-  jr   z,.nullbyte
-  out  (SERIAL),a
-.nullbyte:
-  inc  hl
-  inc  de
-  djnz .loop
-  ld   a,(de)
-  or   a
-  jr   nz,.chsect
-  ret
-
 ; check for a space and at least one more char. fails if not
 ; clobbers: <nothing>
 expect_arg:
@@ -363,11 +339,40 @@ cmd_del:
   call fdel
   ret
 
+; print a file
+cmd_prn:
+  call hex_in
+  ld   c,a
+  push bc
+  ld   hl,(parse)
+  ; skip any whitespace
+  call get_char
+  call unget_char_any
+  call ffind
+  ld   hl,RUN_LOAD
+  push hl
+  call fload
+  pop  de
+  ex   de,hl
+  ; we now have head in hl, eof in de
+  pop bc
+  ; and we have the printer port in c
+.loop:
+  ld   a,h
+  cp   d
+  jr   nz,.noteq
+  ld   a,l
+  cp   e
+  ret  z
+.noteq:
+  ld   a,(hl)
+  out  (c),a
+  inc  hl
+  jr   .loop
+
 cmd_table:
   .byte  "dir"
   .word  cmd_dir
-  .byte  "txt"
-  .word  cmd_txt
   .byte  "bye"
   .word  cmd_bye
   .byte  "sys"
@@ -392,6 +397,8 @@ cmd_table:
   .word  cmd_siz
   .byte  "del"
   .word  cmd_del
+  .byte "prn"
+  .word cmd_prn
   .byte  0
 
 help_txt:

@@ -124,14 +124,3 @@ of the programs I have written that go into the distribution disk. I'm
 told they're quite readable, and I haven't spent much time on any one
 of them (xo took me a grand total of 10 minutes), so they're all
 fairly simple.
-
----------------------------------
-DID YOU JUST RUN THE TXT COMMAND?
----------------------------------
-
-If you tried to read this file using the txt command, try using the
-pager program so you can read from the top. You can use it like this:
-
-  00 ~> pager welcome.txt
-
-Good luck!
