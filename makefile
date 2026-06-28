@@ -22,7 +22,7 @@ build/kernel.out: build
 build/disk: build/kernel.out | build
 	mkdir -p $@
 	cp build/kernel.out build/disk/_k
-	cp welcome.txt build/disk/
+	nroff welcome.groff > build/disk/welcome.txt
 	$(ASM) $(ASMFLAGS) -o build/disk/hexmon src/hexmon.asm
 	$(ASM) $(ASMFLAGS) -Lni -L build/sym.txt -o build/disk/forth src/forth.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/pager src/pager.asm

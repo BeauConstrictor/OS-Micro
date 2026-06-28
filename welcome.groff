@@ -1,0 +1,132 @@
+.de TITLE
+.ce
+\\fB\\$*\\fR
+.sp 1
+..
+.
+.de NEXTPARA
+.ti 5n
+..
+.
+.de LINK
+.sp 1
+.ti 5n
+<\\fI\\$*\\fR>
+.sp 1
+..
+.
+.de CODE
+.sp 1
+.in +5n
+..
+.de ENDCODE
+.in -5n
+.sp 1
+..
+.
+.
+.TITLE WELCOME TO OS/MICRO
+.
+If you can see this, you have successfully booted into OS/M and run your first program - the pager.
+.
+.NEXTPARA
+From here, you can try whatever you want from the shell. I would recommend trying the XO game, as primitive as it is, because it shows you what to expect from 'graphics' on the Ozpex Micro.
+.
+.NEXTPARA
+In reality, there is not much to actually do from within OS/M. Only a few programs exist for it that I know of, and those programs mainly serve as demos of the system. The primary purpose of OS/M and the Ozpex Micro as a whole is to serve as a rewarding and simple retro system to target and practice your assembly skills in.
+.
+.NEXTPARA
+To that end, this document will help you get started with OS/M development. There don't currently exist any development tools that run from within the OS/M environment, so you will have to cross-assemble. Thankfully, it is incredibly easy to start writing assembly for OS/M on your machine.
+.
+.NEXTPARA
+First, you will need a Z80 assembler. I recommend vasmz80_oldstyle,
+which you can find here:
+.LINK http://www.compilers.de/vasm.html
+Once you have the right vasm binary, you will also need the OS/M libraries which you can download from my Github releases page:
+.LINK https://github.com/BeauConstrictor/OS-Micro/releases
+That should be all you need (besides an Ozpex Micro emulator, but I assume you already have one if you are reading this). As a quick sanity test, you can compile this quick 'Hello, world!' program and build it with vasm:
+.
+.CODE
+    .include "mmap.asm"
+    .org RUN_LOAD
+  start:
+    ld   hl,message
+    call print
+    ret
+  message:
+    .asciiz "Hello, world!\\n"
+    .include "io.asm"
+.ENDCODE
+.
+This is how you assemble that program (assuming you named it \fI'hello.asm'\fR):
+.
+.CODE
+vasmz80_oldstyle -Fbin -dotdir -esc -o hello hello.asm
+.ENDCODE
+.
+Then, you need to create a disk image which you can load into your emulator. The OS/M release includes a utility for this called \fBfs128-tool.py\fR. Here is how you would pack that binary into an FS/128 image using it:
+.
+.CODE
+python3 fs128-tool.py -o mydisk.bin hello
+.ENDCODE
+.
+This will output a \fI'mydisk.bin'\fR file whihc you can load into your Ozpex Micro emulator. If you are using my emulator, \fBozm\fR, this is the command that you would use:
+.
+.CODE
+ozm -m bdsk:osm.bin@0 disk:mydisk.bin@1
+.ENDCODE
+This command will mount the \fBosm\fR distribution into device slot 00 and your new disk into slot 01.
+.
+.NEXTPARA
+From here, you can switch to disk 01 and run your prgoram! If you haven't used the \fBdsk\fR command before, here is what you would need to do:
+.
+.CODE
+  00 ~> dsk 01
+  01 ~> dir
+  hello
+  01 ~> hello
+  Hello, world!
+.ENDCODE
+.
+Congratulations! You have just built and run your first OS/M program.
+.
+.TITLE LIBRARIES
+From here, you should start experimenting with the OS/M libraries.
+Unlike most retro OSs such as CP/M, these libraries are actually
+assembled along with your program and interact directly with the
+hardware - they don't go through a BIOS. This is because the Ozpex
+Micro's hardware model is simple and extensible enough that you can
+implement it individually in every program on your computer without
+bloating the binary sizes too much.
+.
+.NEXTPARA
+If you want to read more about the Ozpex Micro's device model, check
+back on the repo soon, as I am in the middle of writing a document
+on that topic.
+.
+.NEXTPARA
+Currently, 3 libraries are included, which you can find in the
+release on Github:
+
+1.\h'5n' fs.asm - The most complex library, implements the FS/128 
+.in +3n
+filesystem to allow you to read, write, create, etc. files. This filesystem was originally designed for the Ozpex 128, but that similar device model means it could be carried over.
+.in -3n
+.sp 0
+2.\h'5n' io.asm -  The library you will use most often, includes
+.in +3n
+I/O routines for printing strings, reading lines of input and parsing and outputting hex.
+.in -3n
+.sp 0
+3.\h'5n' dev.asm - A small library currently, that lets you pro-
+.in +3n
+gramatically discover devices installed in your machine. This one will be more useful in the future when the Ozpex Micro includes more standard devices.
+.in -3n
+
+Let's start with io.asm, as this is the only library that your 'Hello, world!' program from earlier includes. You have already seen the 'print' routine, which takes, in the hl register, a pointer to a sequence of characters followed by a terminating null, or 0, byte. Vasm allows you to create one of these 'strings' easily using the '.asciiz' directive.
+.
+.NEXTPARA
+For a more thorough description of every subroutine included in every library, I implore you to read through the source code. which contains plenty of comments for documentation. I find it easier to keep my documentation up-to-date when it is in the same place as the source code.
+.
+.NEXTPARA
+Otherwise, I hope you are now in a comfortable position to start writing Z80 assembly! If you still feel lost, take a look at any of the programs I have written that go into the distribution disk. I'm told they're quite readable, and I haven't spent much time on any one of them (xo took me a grand total of 10 minutes), so they're all fairly simple.
