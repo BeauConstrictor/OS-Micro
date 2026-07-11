@@ -26,8 +26,6 @@ def fail(text: str) -> None:
     sys.exit(1)
 
 class Filesystem:
-    """Create a FS/128 filesystem image."""
-    
     def __init__(self) -> None:
         self.image = bytearray(SECTOR_SIZE * SECTOR_COUNT)
         
@@ -35,6 +33,9 @@ class Filesystem:
             self.mark_used(i)
             
         self.file_table_end = sector(2)
+
+        self.add_entry("./", 2)
+        self.add_entry("../", 2)
         
     def is_used(self, sector_idx: int) -> int:
         return self.image[sector(1) + sector_idx] == USED_BYTE
@@ -46,19 +47,22 @@ class Filesystem:
         for i in range(LAST_METADATA_SECTOR+1, SECTOR_COUNT):
             if not self.is_used(i): return i
         raise DiskFullError("not enough space left to allocate more sectors")
-        
-    def add_file(self, filename: str, content: bytearray) -> list[int]:
-        sector_idx = self.get_free()
-        sectors = [sector_idx]
-        
-        if self.file_table_end > sector(5) - FILE_ENTRY_SIZE:
-            raise DiskFullError("not enough space left to add more files")
+
+    def add_entry(self, filename: str, sector_idx: int) -> None:
+        if self.file_table_end >= sector(3) - FILE_ENTRY_SIZE:
+            raise DiskFullError("directory full")
         
         for ch in filename.encode('ascii', errors="strict")[:14].ljust(15, b'\0'):
             self.image[self.file_table_end] = ch
             self.file_table_end += 1
         self.image[self.file_table_end] = sector_idx
         self.file_table_end += 1
+        
+    def add_file(self, filename: str, content: bytearray) -> list[int]:
+        sector_idx = self.get_free()
+        sectors = [sector_idx]
+
+        self.add_entry(filename, sector_idx)
         
         byte_in_sector = 0
         self.mark_used(sector_idx)
@@ -79,7 +83,7 @@ class Filesystem:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="fs128-tool",
-        description="generate fs/128 filesystem images",
+        description="generate fs/128-3 filesystem images",
     )
     
     parser.add_argument(

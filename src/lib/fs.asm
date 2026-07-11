@@ -1,18 +1,16 @@
-; fs.asm - The OS/M FS/128 library
+; fs.asm - The OS/M FS/128-2 library
 ;
-; This library implements a subset of the FS/128 spec. Most of these
-; routines take so-called 'fids'. These are single byte identifiers
-; of files on disk which you can obtain using ffind.
+; This library implements the FS/128-2 spec, not the original
+; FS/128 spec, as it is more complicated and less foward-compatible.
+;
+; Most of these routines take so-called 'fids'. These are single byte
+; identifiers of files on disk which you can obtain using ffind.
 ;
 ; Writing to a file does not work the same as in modern operating
 ; systems. It will not create a file if it does not exist, so you
 ; should make sure to create it first. Also, you should only write to
 ; a blank file, so existing files should be deleted and recreated if
 ; you want to change their contents.
-;
-; NOTE: This fs/128 parsing library does not quite support the full
-; spec. Specifically, it uses only one directory sector, sector 1.
-; Sectors 2-5 are treated as unused in this implementation (for now).
 
   .ifndef FS_ASM
 FS_ASM = 1
