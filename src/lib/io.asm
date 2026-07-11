@@ -406,7 +406,6 @@ print:
 interrupt:
   .asciiz "\e[31m <interrupt> \e[0m\n"
 
-parse   = $0000
-linebuf = $0002 ; overwrites the bootloader
+  .include "zeropage.asm"
 
   .endif ; IO_ASM

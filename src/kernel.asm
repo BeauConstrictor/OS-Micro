@@ -2,6 +2,8 @@
 
 start:
   ld   sp,STACK_START
+  ld   a,$02 ; root directory
+  ld   (cwd),a
   jp   welcome
 
   .include "io.asm"

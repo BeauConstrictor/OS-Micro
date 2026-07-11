@@ -1,7 +1,12 @@
-; fs.asm - The OS/M FS/128-2 library
+; fs.asm - The OS/M FS/128-3 library
 ;
-; This library implements the FS/128-2 spec, not the original
-; FS/128 spec, as it is more complicated and less foward-compatible.
+; This library implements the FS/128-3 spec, not the original
+; FS/128 spec, as it is more complicated and more forward-compatible.
+;
+; FS/128-3 also means the filesystem is no longer flat, as special
+; files exist which can contain other files. The directory that is
+; used by all operations that use directories is specified in the
+; cwd variable (defined in zeropage.asm).
 ;
 ; Most of these routines take so-called 'fids'. These are single byte
 ; identifiers of files on disk which you can obtain using ffind.
@@ -21,7 +26,7 @@ FS_ASM = 1
 ffind_noerr:
   ld   d,h
   ld   e,l
-  ld   a,$02
+  ld   a,(cwd)
   ld   (DEV_SECTOR),a
   call busy_wait
   ld   hl,DEV_READ
@@ -239,8 +244,7 @@ mkfree:
   jr mark_sect
 
 ; return the sector number in a of a newly created file on the
-; current disk. returns new file's id in a. you should probably
-; rename it.
+; current disk. you should probably rename the file
 ; clobbers: a,b,c,de,hl, sector
 fnew:
   ; go to directory table
@@ -306,8 +310,8 @@ frename:
   ; preserve original sector
   ld   a,(DEV_SECTOR)
   push af
-  ; go to directory table
-  ld   a,$02
+  ; go to directory
+  ld   a,(cwd)
   ld   (DEV_SECTOR),a
   call busy_wait
   ld   b,16
@@ -414,6 +418,37 @@ disk_usg:
   ld   a,c
   ret
 
+; add the ./ and ../ entries to a newly created directory
+; pass dir's fid in a (./ points to this) and ../ will point to cwd
+; clobbers: TODO
+init_dir:
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ; fill the whole dir with zeroes first
+  ld   b,0
+  ld   hl,DEV_READ
+.zeroout:
+  ld   (hl),0
+  inc  hl
+  djnz .zeroout
+  ; add the ./ entry, pointing to the dir itself
+  ld   a,'.'
+  ld   (DEV_READ),a
+  ld   a,'/'
+  ld   (DEV_READ+1),a
+  ld   a,(DEV_SECTOR)
+  ld   (DEV_READ+15),a
+  ; add the ../ entry, pointing to the cwd
+  ld   a,'.'
+  ld   (DEV_READ+16),a
+  ld   a,'.'
+  ld   (DEV_READ+17),a
+  ld   a,'/'
+  ld   (DEV_READ+18),a
+  ld   a,(cwd)
+  ld   (DEV_READ+31),a
+  ret
+
 ; return in a the number of sectors in file a
 ; clobbers: a,b,hl
 fsize:
@@ -445,7 +480,7 @@ fdel:
   cp   0
   jr   nz,.chsect
   ; now, we need to find that fid's entry in the directory
-  ld   a,$02
+  ld   a,(cwd)
   ld   (DEV_SECTOR),a
   ; go back to original sector
   pop  af
@@ -484,5 +519,7 @@ file_not_found:
 
   .include "dev.asm"
   .include "mmap.asm"
+
+  .include "zeropage.asm"
 
   .endif ; FS_ASM

@@ -95,7 +95,7 @@ exec_cmd:
 
 ; list files and their first sectors
 cmd_dir:
-  ld   a,$02
+  ld   a,(cwd)
   ld   (DEV_SECTOR),a
   call busy_wait
   ld   b,16
@@ -107,6 +107,22 @@ cmd_dir:
   cp   '_' ; hidden files
   jr   z,.unoccupied
   push hl
+.identify:
+  ld   a,(hl)
+  cp   0
+  jr   z,.normalfile
+  cp   '/'
+  jr   z,.isdir
+  inc  hl
+  jr   .identify
+.isdir:
+  ld   hl,dir_subdir_ansi
+  call print
+.normalfile:
+  pop  hl
+  push hl
+  call print
+  ld   hl,ansi_reset
   call print
   pop  hl
   ld   a,'\n'
@@ -265,10 +281,23 @@ cmd_fmt:
 ; create a new file
 cmd_new:
   call fnew
+  push af
   call expect_arg
   ld   hl,(parse)
   call frename
+  ld   hl,(parse)
+.goto_end:
+  ld   a,(hl)
+  inc  hl
+  cp   '/'
+  jr   .is_dir
+  cp   0
+  jr   nz,.goto_end
+  pop  af
   ret
+.is_dir:
+  pop  af
+  jp   init_dir
 
 ; rename a file
 cmd_ren:
@@ -370,36 +399,46 @@ cmd_prn:
   inc  hl
   jr   .loop
 
+; change directory
+cmd_chd:
+  call expect_arg
+  ld   hl,(parse)
+  call ffind
+  ld   (cwd),a
+  ret
+
 cmd_table:
-  .byte  "dir"
-  .word  cmd_dir
-  .byte  "bye"
-  .word  cmd_bye
-  .byte  "sys"
-  .word  cmd_sys
-  .byte  "cls"
-  .word  cmd_cls
-  .byte  "dsk"
-  .word  cmd_dsk
-  .byte  "hlp"
-  .word  cmd_hlp
-  .byte  "fmt"
-  .word  cmd_fmt
-  .byte  "new"
-  .word  cmd_new
-  .byte  "ren"
-  .word  cmd_ren
-  .byte  "dev"
-  .word  cmd_dev
-  .byte  "usg"
-  .word  cmd_usg
-  .byte  "siz"
-  .word  cmd_siz
-  .byte  "del"
-  .word  cmd_del
+  .byte "dir"
+  .word cmd_dir
+  .byte "bye"
+  .word cmd_bye
+  .byte "sys"
+  .word cmd_sys
+  .byte "cls"
+  .word cmd_cls
+  .byte "dsk"
+  .word cmd_dsk
+  .byte "hlp"
+  .word cmd_hlp
+  .byte "fmt"
+  .word cmd_fmt
+  .byte "new"
+  .word cmd_new
+  .byte "ren"
+  .word cmd_ren
+  .byte "dev"
+  .word cmd_dev
+  .byte "usg"
+  .word cmd_usg
+  .byte "siz"
+  .word cmd_siz
+  .byte "del"
+  .word cmd_del
   .byte "prn"
   .word cmd_prn
-  .byte  0
+  .byte "chd"
+  .word cmd_chd
+  .byte 0x00
 
 help_txt:
   .binary "help.txt"
@@ -435,6 +474,8 @@ ansi_reset:
   .asciiz "\e[0m"
 usg_after:
   .asciiz "K / 64K\n"
+dir_subdir_ansi:
+  .asciiz "\e[33m"
 
   .endif ; SHELL_ASM
 
