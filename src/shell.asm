@@ -473,7 +473,7 @@ help_txt:
   .binary "help.txt"
   .byte 0
 welcome_msg:
-  .text   "\e[35mWelcome to OS/M Version 0.4.0!\n"
+  .text   "\e[35mWelcome to OS/M Version 1.0.0!\n"
   .asciiz "\e[90mType 'hlp' for help.\e[0m\n\n"
 pre_prompt:
   .asciiz "\e[36m"
