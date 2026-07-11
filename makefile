@@ -34,10 +34,6 @@ run: all
 	clear
 	@ozm -m bdsk:build/osm.bin@00 -m xmem@01
 
-.PHONY: run
-run: all
-	FS128_TOOL="src/fs128-tool.py" OSM_LIB="src/lib/" OSM_IMG="build/osm.bin" ./src/osm-run build/disk/xo
-
 .PHONY: clean
 clean:
 	rm -rf build
