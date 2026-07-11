@@ -33,10 +33,14 @@ build/disk: build/kernel.out | build
 build/osm.bin: build/bootloader.out build/disk | build
 	$(FS128_TOOL) -b $< -o $@ build/disk/*
 
+# .PHONY: run
+# run: all
+# 	clear
+# 	@ozm -m bdsk:build/osm.bin@00 -m xmem@01
+
 .PHONY: run
 run: all
-	clear
-	@ozm -m bdsk:build/osm.bin@00 -m xmem@01
+	FS128_TOOL="src/fs128-tool.py" OSM_LIB="src/lib/" OSM_IMG="build/osm.bin" ./src/osm-run build/disk/xo
 
 .PHONY: clean
 clean:

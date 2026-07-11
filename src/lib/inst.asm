@@ -6,6 +6,7 @@
 
 INST_LD_DE_NN  = $11 ; ld   de,nn
 INST_SBC_HL_DE = $52 ; sbc  hl,de   - MISC PREFIXED
+INST_HALT      = $76 ; halt
 INST_OR_A      = $b7 ; or   a
 INST_JP_NN     = $c3 ; jp   nn
 INST_RET       = $c9 ; ret

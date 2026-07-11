@@ -1,0 +1,102 @@
+#!/bin/bash
+
+set -e
+
+: "${FS128_TOOL:?FS128_TOOL is not set}"
+: "${OSM_IMG:?OSM_IMG is not set}"
+: "${OSM_LIB:?OSM_LIB is not set}"
+
+img=$(mktemp)
+trap 'rm -f "$img"' EXIT
+src=$(mktemp)
+trap 'rm -f "$src"' EXIT
+bootstrap=/tmp/bootstrap
+trap 'rm -f "$bootstrap"' EXIT
+prg=/tmp/osm-run-prg
+trap 'rm -f "$prg"' EXIT
+
+# a small bootstrap program that replaces the program exit vector
+# with a halt instruction, exiting the emulator
+cat > "$src" <<'EOF'
+
+  .include "mmap.asm"
+  .include "inst.asm"
+
+  .org RUN_LOAD
+
+RUN_BLOCK_SIZE = $ff
+
+start:
+  pop  hl ; get the return vector
+  push hl
+  ld   (hl),INST_HALT ; halt the machine in return
+
+
+  ld   hl,KERNEL
+  ld   (hl),INST_HALT ; halt the machine in return
+
+  ld   hl,RUN_LOAD-RUN_BLOCK_SIZE ; an arbitrary address that won't
+                                  ; get overwritten by the new program
+  ld   de,run
+  ld   b,RUN_BLOCK_SIZE
+.loop:
+  ld   a,(de)
+  ld   (hl),a
+  inc  hl
+  inc  de
+  djnz .loop
+
+  ld   hl,reenable_output
+  call print
+
+  ld   hl,program_name
+  call ffind
+  jp   RUN_LOAD-RUN_BLOCK_SIZE
+
+; we copy this somewhere before the program load address and then jump
+; to it
+run:
+  ld   hl,RUN_LOAD
+.sectors:
+  ld   (DEV_SECTOR),a
+.busy_wait
+  ld   a,(DEV_STATUS)
+  and  BUSY
+  jr   nz,.busy_wait
+  ld   de,DEV_READ
+  ld   b,$ff
+.bytes:
+  ld   a,(de)
+  ld   (hl),a
+  inc  de
+  inc  hl
+  djnz .bytes
+  ld   a,(de)
+  or   a
+  jr   nz,.sectors
+  jp   RUN_LOAD
+
+program_name:
+  .asciiz "osm-run-prg"
+reenable_output:
+  .asciiz "\033[?1049l"
+
+  .include "fs.asm"
+  .include "io.asm"
+
+EOF
+
+tput smcup
+
+ls "$OSM_LIB"
+vasmz80_oldstyle -esc -dotdir -Fbin "$src" -o "$bootstrap" -I "$OSM_LIB"
+
+cp "$1" "$prg"
+python3 "$FS128_TOOL" "$prg" "$bootstrap" -o "$img"
+ 
+{
+  printf 'dsk 01\n%s\n' "$(basename "$bootstrap")"
+  stty -echo -icanon
+  trap 'stty sane' EXIT
+  cat
+} | ozm -m "bdsk:$OSM_IMG@00" -m "disk:$img@01"
