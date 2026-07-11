@@ -79,12 +79,34 @@ exec_cmd:
   ld   hl,linebuf
   call ffind_noerr
   pop  hl
-  jr   c,.notfound_external
+  jr   c,.notfound_cwd
   ld   (parse),hl
   ld   hl,RUN_LOAD
   call fload
   jp   RUN_LOAD
-.notfound_external:
+.notfound_cwd:
+  ; check the root directory for the program (i might add some kind of
+  ; PATH system at some point)
+  ld   a,(cwd)
+  ld   b,a
+  push hl
+  push bc
+  ld   hl,linebuf
+  ld   a,$02 ; root directory
+  ld   (cwd),a
+  call ffind_noerr
+  ld   d,a
+  pop  bc
+  pop  hl
+  ld   a,b
+  ld   (cwd),a
+  jr   c,.notfound_root
+  ld   (parse),hl
+  ld   hl,RUN_LOAD
+  ld   a,d
+  call fload
+  jp   RUN_LOAD
+.notfound_root:
   ld   hl,linebuf
   call print
   ld   a,'?'
@@ -107,6 +129,9 @@ cmd_dir:
   cp   '_' ; hidden files
   jr   z,.unoccupied
   push hl
+  ld   a,(hl)
+  cp   '.'
+  jr   z,.dimmed
 .identify:
   ld   a,(hl)
   cp   0
@@ -117,6 +142,10 @@ cmd_dir:
   jr   .identify
 .isdir:
   ld   hl,dir_subdir_ansi
+  call print
+  jr   .normalfile
+.dimmed:
+  ld   hl,dir_dimmed_ansi
   call print
 .normalfile:
   pop  hl
@@ -290,7 +319,7 @@ cmd_new:
   ld   a,(hl)
   inc  hl
   cp   '/'
-  jr   .is_dir
+  jr   z,.is_dir
   cp   0
   jr   nz,.goto_end
   pop  af
@@ -444,7 +473,7 @@ help_txt:
   .binary "help.txt"
   .byte 0
 welcome_msg:
-  .text   "\e[35mWelcome to OS/M Version 0.3.0!\n"
+  .text   "\e[35mWelcome to OS/M Version 0.4.0!\n"
   .asciiz "\e[90mType 'hlp' for help.\e[0m\n\n"
 pre_prompt:
   .asciiz "\e[36m"
@@ -476,6 +505,8 @@ usg_after:
   .asciiz "K / 64K\n"
 dir_subdir_ansi:
   .asciiz "\e[33m"
+dir_dimmed_ansi:
+  .asciiz "\e[90m"
 
   .endif ; SHELL_ASM
 

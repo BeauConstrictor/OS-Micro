@@ -131,8 +131,10 @@ unget_char:
   ret
 
 ; output the hex byte in a
-; clobbers: a,b
+; clobbers:
 hex_out:
+  push af
+  push bc
   ; save full byte into a
   ld   b,a
   ; extract high nibble
@@ -148,6 +150,8 @@ hex_out:
   and  $0f
   ; print it
   call .nibble
+  pop  bc
+  pop  af
   ret
 .nibble:
   ; if nibble < 10, print it's digit

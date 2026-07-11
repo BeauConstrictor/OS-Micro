@@ -248,7 +248,7 @@ mkfree:
 ; clobbers: a,b,c,de,hl, sector
 fnew:
   ; go to directory table
-  ld   a,02
+  ld   a,(cwd)
   ld   (DEV_SECTOR),a
   call busy_wait
   ld   hl,DEV_READ
