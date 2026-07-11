@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -93,9 +93,11 @@ vasmz80_oldstyle -esc -dotdir -Fbin "$src" -o "$bootstrap" -I "$OSM_LIB"
 
 cp "$1" "$prg"
 python3 "$FS128_TOOL" "$prg" "$bootstrap" -o "$img"
- 
+
+shift
+
 {
-  printf 'dsk 01\n%s\n' "$(basename "$bootstrap")"
+  printf 'dsk 01\n%s\n%s' "$(basename "$bootstrap")" "$*"
   stty -echo -icanon
   trap 'stty sane' EXIT
   cat
