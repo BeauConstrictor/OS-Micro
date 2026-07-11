@@ -70,6 +70,8 @@ execl:
   jr   z,.prev
   cp   'q'
   jr   z,.quit
+  cp   's'
+  jr   z,.sysfirm
   cp   '!'
   jr   z,.jump
   cp   '.'
@@ -108,6 +110,8 @@ execl:
 .quit:
   ld   hl,(exit_vec)
   jp   (hl)
+.sysfirm:
+  jp   BIOS
 .jump:
   ld   hl,(addr)
   jp   hl
