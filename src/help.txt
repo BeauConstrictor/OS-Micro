@@ -16,4 +16,4 @@ Commands:
 [32mdev       [90m        - [0mList installed devices
 [32musg       [90m        - [0mCheck how much of the disk is in use
 [32msiz [33m[file]        [90m- [0mCheck the size of a file
-[32mchd [33m[file]        [90m- [0mSwitch to a different directory
+[32mcwd [33m[file]        [90m- [0mChange the working directory

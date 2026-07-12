@@ -16,6 +16,10 @@
 ; should make sure to create it first. Also, you should only write to
 ; a blank file, so existing files should be deleted and recreated if
 ; you want to change their contents.
+;
+; NOTE: originally, these routines tried not to clobber the active
+;       device sector. the newer routines do clobber it, so just
+;       assume it always is.
 
   .ifndef FS_ASM
 FS_ASM = 1
@@ -583,9 +587,51 @@ fmove:
   inc  de
   djnz .add_ent
   ret
-
 .temp_buf:
   .reserve 16
+
+; write the name of the dir in a to hl (should be 15-bytes in size)
+; returns c if the dir is the root dir, nc otherwise
+; clobbers: a,b,c,de
+get_dir_name:
+  ld   d,h
+  ld   e,l
+  ld   (DEV_SECTOR),a
+  ld   c,a
+  call busy_wait
+  ld   a,(DEV_READ+16+15) ; fid of entry two (always the ../ entry)
+  ; go to the parent directory
+  cp   c
+  jr   nz,.notroot
+  scf
+  ret
+.notroot:
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ld   hl,DEV_READ+15
+  ld   c,a
+  ld   b,16
+.loop:
+  ld   a,(hl)
+  cp   c
+  jr   z,.found
+  push de
+  ld   de,16
+  add  hl,de
+  pop  de
+  djnz  .loop
+  jp   panic
+.found:
+  push de
+  ld   de,16+15
+  or   a
+  sbc  hl,de
+  pop  de
+  push de
+  call strcpy
+  or   a ; clear carry
+  pop  hl
+  ret
 
 ; handle an error
 panic:

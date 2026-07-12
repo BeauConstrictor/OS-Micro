@@ -22,9 +22,23 @@ shell_prompt:
   call print
   ld   a,(DEV_SELECT)
   call hex_out
+
+  ld   hl,middle_prompt
+  call print
+
+  ld   a,(cwd)
+  ld   hl,.cwd_name
+  call get_dir_name
+  jr   c,.isroot
+  ld   hl,.cwd_name
+  call print
+.isroot:
+
   ld   hl,post_prompt
   call print
   ret
+.cwd_name:
+  .reserve 15
 
 ; execute the command in the input buffer
 ; clobbers: assume all
@@ -264,9 +278,13 @@ cmd_dsk:
   ld   a,(DEV_STATUS)
   and  DEV_ID
   cp   SECTD
-  ret  z
+  jp   z,.isvalid
   ld   hl,not_a_disk
   jp   print
+.isvalid:
+  ld   a,0
+  ld   (cwd),a
+  ret
 
 ; show help text
 cmd_hlp:
@@ -444,7 +462,7 @@ cmd_prn:
   jr   .loop
 
 ; change directory
-cmd_chd:
+cmd_cwd:
   call expect_arg
   ld   hl,(parse)
   call ffind
@@ -480,8 +498,8 @@ cmd_table:
   .word cmd_del
   .byte "prn"
   .word cmd_prn
-  .byte "chd"
-  .word cmd_chd
+  .byte "cwd"
+  .word cmd_cwd
   .byte "mov"
   .word cmd_mov
   .byte 0x00
@@ -494,6 +512,8 @@ welcome_msg:
   .asciiz "\e[90mType 'hlp' for help.\e[0m\n\n"
 pre_prompt:
   .asciiz "\e[36m"
+middle_prompt:
+  .asciiz "\e[90m:\e[33m"
 post_prompt:
   .asciiz "\e[90m ~> \e[32m"
 final_prompt:
@@ -524,6 +544,8 @@ dir_subdir_ansi:
   .asciiz "\e[33m"
 dir_dimmed_ansi:
   .asciiz "\e[90m"
+cwd_name:
+  .reserve 15
 
   .endif ; SHELL_ASM
 
