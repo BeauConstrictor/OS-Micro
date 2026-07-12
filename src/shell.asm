@@ -339,6 +339,21 @@ cmd_ren:
   call frename
   ret
 
+; move a file
+cmd_mov:
+  call expect_arg
+  call splitarg
+  push hl
+  ld   hl,(parse)
+  call ffind
+  pop  hl
+  push af
+  call ffind
+  ld   b,a
+  pop  af
+  call fmove
+  ret
+
 ; list installed devices
 cmd_dev:
   ld   a,0
@@ -467,6 +482,8 @@ cmd_table:
   .word cmd_prn
   .byte "chd"
   .word cmd_chd
+  .byte "mov"
+  .word cmd_mov
   .byte 0x00
 
 help_txt:

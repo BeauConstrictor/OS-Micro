@@ -29,6 +29,10 @@ build/disk: build/kernel.out | build
 	$(ASM) $(ASMFLAGS) -o build/disk/xo src/xo.asm
 	$(ASM) $(ASMFLAGS) -o build/disk/edit src/edit.asm
 
+.PHONY: build/osm.bin
+build/osm.bin: build/bootloader.out build/disk | build
+	$(FS128_TOOL) -b $< -o $@ build/disk/*
+
 .PHONY: run
 run: all
 	clear

@@ -466,7 +466,7 @@ fsize:
   ret
 
 ; delete the file in a
-; clobbers: TODO
+; clobbers: a,b,c,de,hl
 fdel:
   push af
 .chsect:
@@ -506,6 +506,86 @@ fdel:
   inc  hl
   djnz .clear
   ret
+
+; move the file in a (must be in the cwd!) to the directory in b
+; clobbers: TODO
+fmove:
+  push bc
+  ld   c,a
+  ld   a,(cwd)
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  ld   hl,DEV_READ+15
+  ld   b,16
+.find:
+  ld   a,(hl)
+  cp   c
+  jr   z,.found
+  ; move to next entry
+  ld   de,16
+  add  hl,de
+  djnz .find
+  ld   hl,file_not_found
+  call print
+  pop  bc ; we don't actually need to balance the stack before a
+          ; panic, but it keeps me sane
+  jp   panic
+.found:
+  ; go to start of entry
+  ld   de,15
+  or   a ; clear carry
+  sbc  hl,de
+  ; copy entry into temporary buffer
+  ld   b,16
+  ld   de,.temp_buf
+.copy:
+  ld   a,(hl)
+  ld   (de),a
+  ; zero out original entry
+  ; TODO: maybe don't zero out the entry until we know we have enough
+  ; space in the new directory. otherwise we can lose the file, but
+  ; it will still be taking up disk space, and a disk checker program
+  ; will need to fix that.
+  ld   a,0
+  ld   (hl),a
+  inc  hl
+  inc  de
+  djnz .copy
+  ld   a,c
+  pop  bc
+  push af
+  ; we now have file's fid in a and new dir's fid in b
+  ld   a,b
+  ld   (DEV_SECTOR),a
+  call busy_wait
+  pop  af
+  ld   b,16
+  ld   hl,DEV_READ+15
+.find_2:
+  ld   a,(hl)
+  cp   0
+  jr   z,.found_2
+  ld   de,16
+  add  hl,de
+  djnz .find_2
+  jp   panic
+.found_2:
+  ; go to start of entry
+  ld   de,15
+  or   a ; clear carry
+  sbc  hl,de
+  ld   b,16
+  ld   de,.temp_buf
+.add_ent:
+  ld   a,(de)
+  ld   (hl),a
+  inc  hl
+  inc  de
+  djnz .add_ent
+  ret
+
+.temp_buf:
+  .reserve 16
 
 ; handle an error
 panic:
