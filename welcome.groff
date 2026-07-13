@@ -39,6 +39,9 @@ In reality, there is not much to actually do from within OS/M. Only a few progra
 To that end, this document will help you get started with OS/M development. There don't currently exist any development tools that run from within the OS/M environment, so you will have to cross-assemble. Thankfully, it is incredibly easy to start writing assembly for OS/M on your machine.
 .
 .NEXTPARA
+Before we get started though, I just want to explain some of the quirkier features (or drawbacks, it all depends how you look at it) of OS/M. For starters, directories and files within OS/M aren't really distinct concepts - directories are just files whose names end with a '/' (you even create directories that same way you create files). Also, there is no concept of a PATH or environment variables in general, so commands are looked up in hardcoded order: first, the builtins are checked, then your current directory is checked, then your disk's root directory and, finally, disk 0's root directory is checked. Because of this, it is a common practice to keep all your programs on disk 0, and do most of your work in another disk. With that out of the way, let's begin.
+.
+.NEXTPARA
 First, you will need a Z80 assembler. I recommend vasmz80_oldstyle,
 which you can find here:
 .LINK http://www.compilers.de/vasm.html
@@ -70,7 +73,7 @@ Then, you need to create a disk image which you can load into your emulator. The
 python3 fs128-tool.py -o mydisk.bin hello
 .ENDCODE
 .
-This will output a \fI'mydisk.bin'\fR file whihc you can load into your Ozpex Micro emulator. If you are using my emulator, \fBozm\fR, this is the command that you would use:
+This will output a \fI'mydisk.bin'\fR file which you can load into your Ozpex Micro emulator. If you are using my emulator, \fBozm\fR, this is the command that you would use:
 .
 .CODE
 ozm -m bdsk:osm.bin@0 disk:mydisk.bin@1
@@ -78,7 +81,7 @@ ozm -m bdsk:osm.bin@0 disk:mydisk.bin@1
 This command will mount the \fBosm\fR distribution into device slot 00 and your new disk into slot 01.
 .
 .NEXTPARA
-From here, you can switch to disk 01 and run your prgoram! If you haven't used the \fBdsk\fR command before, here is what you would need to do:
+From here, you can switch to disk 01 and run your program! If you haven't used the \fBdsk\fR command before, here is what you would need to do:
 .
 .CODE
   00 ~> dsk 01
@@ -89,6 +92,9 @@ From here, you can switch to disk 01 and run your prgoram! If you haven't used t
 .ENDCODE
 .
 Congratulations! You have just built and run your first OS/M program.
+.
+.NEXTPARA
+As a quick sidenote, the latest version of OS/M actually includes a small script in the repo called \fIosm-run\fR, which lets you run an assembled OS/M program directly, without having to go into the OS/M shell and run it from there.
 .
 .TITLE LIBRARIES
 From here, you should start experimenting with the OS/M libraries.
@@ -120,7 +126,7 @@ I/O routines for printing strings, reading lines of input and parsing and output
 .sp 0
 3.\h'5n' dev.asm - A small library currently, that lets you pro-
 .in +3n
-gramatically discover devices installed in your machine. This one will be more useful in the future when the Ozpex Micro includes more standard devices.
+grammatically discover devices installed in your machine. This one will be more useful in the future when the Ozpex Micro includes more standard devices.
 .in -3n
 
 Let's start with io.asm, as this is the only library that your 'Hello, world!' program from earlier includes. You have already seen the 'print' routine, which takes, in the hl register, a pointer to a sequence of characters followed by a terminating null, or 0, byte. Vasm allows you to create one of these 'strings' easily using the '.asciiz' directive.

@@ -623,7 +623,7 @@ get_dir_name:
   jp   panic
 .found:
   push de
-  ld   de,16+15
+  ld   de,15
   or   a
   sbc  hl,de
   pop  de

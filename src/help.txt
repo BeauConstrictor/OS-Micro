@@ -1,6 +1,9 @@
 These commands are defined internally. To run an external program,
 type it's name.
 
+External commands are first searched in your current directory, then
+the root directory, and then the root director of disk 0.
+
 Commands:
 
 [32mhlp       [90m        - [0mShow this help
