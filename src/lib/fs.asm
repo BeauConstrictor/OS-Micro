@@ -92,7 +92,6 @@ ffind:
   call ffind_noerr
   ret  nc
   ld   hl,file_not_found
-  call print
   jp   panic
 
 ; load the file starting at the sector in the a register into memory,
@@ -207,7 +206,6 @@ getfree:
   inc  c
   djnz .loop
   ld   hl,disk_full
-  call print
   jp   panic
 .found:
   ; go back to original sector
@@ -265,7 +263,6 @@ fnew:
   add  hl,de
   djnz .loop
   ld   hl,disk_full
-  call print
   jp   panic
 .found:
   ld   a,'n'
@@ -332,7 +329,6 @@ frename:
   djnz .find
 .notfound:
   ld   hl,file_not_found
-  call print
   jp   panic
 .found:
   push de
@@ -530,7 +526,6 @@ fmove:
   add  hl,de
   djnz .find
   ld   hl,file_not_found
-  call print
   pop  bc ; we don't actually need to balance the stack before a
           ; panic, but it keeps me sane
   jp   panic
@@ -572,7 +567,10 @@ fmove:
   ld   de,16
   add  hl,de
   djnz .find_2
+  push hl
+  ld   hl,file_not_found
   jp   panic
+  pop  hl
 .found_2:
   ; go to start of entry
   ld   de,15
@@ -620,7 +618,10 @@ get_dir_name:
   add  hl,de
   pop  de
   djnz  .loop
+  push hl
+  ld   hl,file_not_found
   jp   panic
+  pop  hl
 .found:
   push de
   ld   de,15
@@ -633,11 +634,6 @@ get_dir_name:
   pop  hl
   ret
 
-; handle an error
-panic:
-  ld   sp,STACK_START
-  jp   KERNEL
-
 disk_full:
   .asciiz "\e[31mThe disk is full.\n\e[0m"
 file_not_found:
@@ -645,7 +641,7 @@ file_not_found:
 
   .include "dev.asm"
   .include "mmap.asm"
-
+  .include "panic.asm"
   .include "zeropage.asm"
 
   .endif ; FS_ASM

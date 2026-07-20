@@ -91,42 +91,65 @@ exec_cmd:
   call splitarg
   push hl
   ld   hl,linebuf
-  call ffind_noerr
+  call exec_lookup
   pop  hl
-  jr   c,.notfound_cwd
+  jr   c,.notfound_external
   ld   (parse),hl
   ld   hl,RUN_LOAD
   call fload
   jp   RUN_LOAD
-.notfound_cwd:
-  ; check the root directory for the program (i might add some kind of
-  ; PATH system at some point)
-  ld   a,(cwd)
-  ld   b,a
-  push hl
-  push bc
-  ld   hl,linebuf
-  ld   a,$02 ; root directory
-  ld   (cwd),a
-  call ffind_noerr
-  ld   d,a
-  pop  bc
-  pop  hl
-  ld   a,b
-  ld   (cwd),a
-  jr   c,.notfound_root
-  ld   (parse),hl
-  ld   hl,RUN_LOAD
-  ld   a,d
-  call fload
-  jp   RUN_LOAD
-.notfound_root:
+.notfound_external:
   ld   hl,linebuf
   call print
   ld   a,'?'
   out  (SERIAL),a
   ld   a,'\n'
   out  (SERIAL),a
+  ret
+
+; return in a the fid of the file in the standard executable locations
+; with the name hl (1st checked: cwd, hen root, then disk 0 root)
+; return c if not found anywhere, nc otherwise
+; clobbers: TODO
+exec_lookup:
+  push  hl
+  call ffind_noerr
+  pop  hl
+  ret  nc
+  ld   a,(cwd)
+  ld   b,a
+  push bc
+  ld   a,0
+  ld   (cwd),a
+  push hl
+  call ffind_noerr
+  pop  hl
+  pop  bc
+  jr   c,.not_in_root
+  ld   a,b
+  ld   (cwd),a
+  or   a
+  ret
+.not_in_root;
+  ld   a,(DEV_SELECT)
+  ld   c,a
+  push bc
+  ld   a,0
+  ld   (DEV_SELECT),a
+  call busy_wait
+  ld   a,0
+  ld   (cwd),a
+  call ffind_noerr
+  pop  bc
+  push af
+  ; we now have original cwd in b and the original device in c
+  ld   a,b
+  ld   (cwd),a
+  ld   a,c
+  ld   (DEV_SELECT),a
+  call busy_wait
+  ; just return whatever carry and fid that ffind_noerr returns
+  pop  af
   ret
 
 ; list files and their first sectors
