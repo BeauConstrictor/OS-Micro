@@ -45,7 +45,7 @@ dev_find:
   jr   z,.nodev
   cp   b
   jr   z,.found
-.nodev
+.nodev:
   ld   a,(DEV_SELECT)
   inc  a
   ld   (DEV_SELECT),a
